@@ -1,0 +1,6 @@
+{
+  "name": "TELLIE - Không Gian Chữa Lành Cho Sinh Viên",
+  "description": "TELLIE là không gian cảm xúc ẩn danh dành cho sinh viên: Nói ra → Được lắng nghe → Tìm hỗ trợ. Thiết kế nhẹ nhàng, an toàn và đồng hành cùng Tinh linh Tellie.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

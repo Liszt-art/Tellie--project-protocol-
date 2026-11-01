@@ -1,0 +1,422 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --bg-night-dark: #0D1020;
+    --bg-card-1: #11152A;
+    --bg-card-2: #171A35;
+    --bg-card-3: #242347;
+    --accent-lavender: #B9A9E8;
+    --accent-blue: #91B8E8;
+    --accent-rose: #DFAFC8;
+    --accent-ivory: #F4EEDC;
+    --accent-mint: #A8D2C4;
+    --text-primary: #F5F2FA;
+    --text-secondary: #B9B5C8;
+    --text-muted: #858198;
+  }
+
+  body {
+    background-color: #0D1020;
+    color: #F5F2FA;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+}
+
+/* Glassmorphism surfaces */
+.glass-panel {
+  background: rgba(23, 26, 53, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(185, 169, 232, 0.12);
+  box-shadow: 0 8px 32px 0 rgba(13, 16, 32, 0.45);
+}
+
+.glass-panel-interactive {
+  background: rgba(23, 26, 53, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(185, 169, 232, 0.12);
+  box-shadow: 0 6px 24px -2px rgba(13, 16, 32, 0.5);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel-interactive:hover {
+  background: rgba(36, 35, 71, 0.75);
+  border-color: rgba(185, 169, 232, 0.28);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -4px rgba(13, 16, 32, 0.65), 0 0 20px -2px rgba(185, 169, 232, 0.15);
+}
+
+.glass-panel-interactive:active {
+  transform: scale(0.98);
+}
+
+/* Atmospheric Glows */
+.glow-lavender {
+  box-shadow: 0 0 35px -5px rgba(185, 169, 232, 0.25);
+}
+
+.glow-blue {
+  box-shadow: 0 0 35px -5px rgba(145, 184, 232, 0.25);
+}
+
+.glow-rose {
+  box-shadow: 0 0 35px -5px rgba(223, 175, 200, 0.25);
+}
+
+.glow-mint {
+  box-shadow: 0 0 35px -5px rgba(168, 210, 196, 0.25);
+}
+
+/* Animations */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1deg);
+  }
+}
+
+@keyframes breatheSoft {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.4;
+    filter: drop-shadow(0 0 8px rgba(185, 169, 232, 0.3));
+  }
+  50% {
+    opacity: 0.85;
+    filter: drop-shadow(0 0 18px rgba(185, 169, 232, 0.6));
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes dissolveBurn {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: brightness(1) sepia(0);
+  }
+  30% {
+    transform: scale(0.98) translateY(-4px) rotate(-1deg);
+    filter: brightness(1.2) sepia(0.3) saturate(2);
+  }
+  70% {
+    opacity: 0.7;
+    transform: scale(0.85) translateY(-16px) rotate(2deg);
+    filter: brightness(1.6) blur(2px) contrast(1.5);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.4) translateY(-40px);
+    filter: brightness(2) blur(8px);
+  }
+}
+
+.animate-float {
+  animation: floatSlow 5s ease-in-out infinite;
+}
+
+.animate-breathe {
+  animation: breatheSoft 4s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3.5s ease-in-out infinite;
+}
+
+.animate-burn {
+  animation: dissolveBurn 2.8s forwards cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes growthPulse {
+  0% {
+    transform: scale(0.92) translateY(6px);
+    filter: brightness(1.1);
+  }
+  50% {
+    transform: scale(1.1) translateY(-4px);
+    filter: brightness(1.35) drop-shadow(0 0 16px rgba(168, 210, 196, 0.7));
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    filter: brightness(1);
+  }
+}
+
+@keyframes soilGlowBloom {
+  0% {
+    opacity: 0.2;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 14px rgba(168, 210, 196, 0.8));
+  }
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+}
+
+.animate-growth {
+  animation: growthPulse 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-soil-glow {
+  animation: soilGlowBloom 1.2s ease-out forwards;
+}
+
+/* Subtle Idle Animations for 3D Tellie Spirits */
+@keyframes spiritBlinkKeyframe {
+  0%, 86%, 92%, 100% {
+    transform: scaleY(1);
+    transform-origin: center;
+  }
+  89% {
+    transform: scaleY(0.08);
+    transform-origin: center;
+  }
+}
+
+@keyframes fairyWingLeftKeyframe {
+  0%, 100% {
+    transform: rotate(0deg);
+    transform-origin: 100px 145px;
+  }
+  50% {
+    transform: rotate(-3.5deg) scale(1.02);
+    transform-origin: 100px 145px;
+  }
+}
+
+@keyframes fairyWingRightKeyframe {
+  0%, 100% {
+    transform: rotate(0deg);
+    transform-origin: 140px 145px;
+  }
+  50% {
+    transform: rotate(3.5deg) scale(1.02);
+    transform-origin: 140px 145px;
+  }
+}
+
+@keyframes spiritParticleKeyframe {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateY(0px) scale(0.9);
+  }
+  50% {
+    opacity: 0.95;
+    transform: translateY(-6px) scale(1.15);
+  }
+}
+
+.animate-spirit-blink {
+  animation: spiritBlinkKeyframe 6.5s ease-in-out infinite;
+}
+
+.animate-fairy-wing-l {
+  animation: fairyWingLeftKeyframe 3.8s ease-in-out infinite;
+}
+
+.animate-fairy-wing-r {
+  animation: fairyWingRightKeyframe 3.8s ease-in-out infinite;
+}
+
+.animate-spirit-particle {
+  animation: spiritParticleKeyframe 4.2s ease-in-out infinite;
+}
+
+/* Subtle Ambient Atmosphere Keyframes */
+@keyframes moonPulseGlow {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.72;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes cloudDriftGentle {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(24px);
+  }
+}
+
+@keyframes cloudDriftReverse {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-20px);
+  }
+}
+
+@keyframes starTwinkleSubtle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes dustFloatSubtle {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: translateY(-14px) translateX(8px);
+  }
+}
+
+.animate-moon-pulse {
+  animation: moonPulseGlow 9s ease-in-out infinite;
+}
+
+.animate-cloud-drift {
+  animation: cloudDriftGentle 28s ease-in-out infinite;
+}
+
+.animate-cloud-drift-rev {
+  animation: cloudDriftReverse 32s ease-in-out infinite;
+}
+
+.animate-star-twinkle {
+  animation: starTwinkleSubtle 6s ease-in-out infinite;
+}
+
+.animate-dust-float {
+  animation: dustFloatSubtle 14s ease-in-out infinite;
+}
+
+/* Custom scrollbar for mobile feel */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(13, 16, 32, 0.4);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(185, 169, 232, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(185, 169, 232, 0.4);
+}
+
+/* Instant Light & Radiating Wave Effect on Spirit Tap (Zero Delay, No Water Droplet) */
+@keyframes instantLightCore {
+  0% {
+    transform: translate(-50%, -50%) scale(0.1);
+    opacity: 1;
+    filter: brightness(2.4) drop-shadow(0 0 18px rgba(255, 255, 255, 1));
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0.95;
+    filter: brightness(1.8) drop-shadow(0 0 28px rgba(185, 169, 232, 0.9));
+  }
+  55% {
+    transform: translate(-50%, -50%) scale(2.4);
+    opacity: 0.5;
+    filter: brightness(1.3) drop-shadow(0 0 36px rgba(168, 210, 196, 0.6));
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(3.6);
+    opacity: 0;
+    filter: blur(14px);
+  }
+}
+
+@keyframes instantWaveRing {
+  0% {
+    transform: translate(-50%, -50%) scale(0.06);
+    opacity: 1;
+    border-width: 3.5px;
+  }
+  30% {
+    opacity: 0.85;
+  }
+  75% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(3.8);
+    opacity: 0;
+    border-width: 1px;
+  }
+}
+
+@keyframes sparkScatter {
+  0% {
+    transform: translate(-50%, -50%) scale(0.2);
+    opacity: 1;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) scale(1.35);
+    opacity: 0;
+  }
+}
+
+.animate-instant-light-core {
+  animation: instantLightCore 0.85s cubic-bezier(0.1, 0.9, 0.2, 1) 0s forwards;
+}
+
+.animate-instant-wave-1 {
+  animation: instantWaveRing 1.05s cubic-bezier(0.1, 0.85, 0.25, 1) 0s forwards;
+}
+
+.animate-instant-wave-2 {
+  animation: instantWaveRing 1.15s cubic-bezier(0.1, 0.85, 0.25, 1) 0.06s forwards;
+}
+
+.animate-instant-wave-3 {
+  animation: instantWaveRing 1.25s cubic-bezier(0.1, 0.85, 0.25, 1) 0.14s forwards;
+}
+
+.animate-spark-scatter {
+  animation: sparkScatter 0.85s cubic-bezier(0.15, 0.85, 0.35, 1) 0s forwards;
+}
+
