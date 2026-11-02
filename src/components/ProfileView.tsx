@@ -3,6 +3,7 @@ import {
   Calendar,
   Sparkles,
   Lock,
+  Unlock,
   Edit3,
   RotateCcw,
   Check,
@@ -10,7 +11,12 @@ import {
   TrendingUp,
   Settings,
   Info,
-  Heart
+  Heart,
+  ArrowLeft,
+  X,
+  AlertTriangle,
+  KeyRound,
+  ShieldAlert
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getSpiritById } from '../data/spirits';
@@ -19,67 +25,96 @@ import { SpiritAvatar } from './SpiritAvatar';
 import { MoodEntry } from '../types';
 import { sound } from '../utils/audio';
 
-export const ProfileView: React.FC = () => {
+interface ProfileViewProps {
+  onClose?: () => void;
+}
+
+export const ProfileView: React.FC<ProfileViewProps> = ({ onClose }) => {
   const {
     userSpirit,
-    updateSpiritName,
     moodHistory,
     posts,
-    gardenPlants,
     burnedPapers,
     openModal,
     resetAllData,
+    resetOnboarding,
     userNickname,
     setUserNickname
   } = useApp();
 
-  const [activeSubTab, setActiveSubTab] = useState<'timeline' | 'board' | 'private' | 'settings'>('timeline');
+  const [activeSubTab, setActiveSubTab] = useState<'timeline' | 'private' | 'settings'>('timeline');
   const [isEditingName, setIsEditingName] = useState(false);
-  const [editedName, setEditedName] = useState(userSpirit?.customName || '');
-  const [selectedDayMood, setSelectedDayMood] = useState<MoodEntry | null>(null);
+  const [tempNickname, setTempNickname] = useState(userNickname || '');
+
+  // Password-protected Private Memories state
+  const [isPrivateUnlocked, setIsPrivateUnlocked] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState('');
+
+  // Strict 2-Step Confirmation for Reset LocalStorage
+  const [resetModalStep, setResetModalStep] = useState<0 | 1 | 2>(0);
+
+  // Testing Reset Onboarding state
+  const [showOnboardingResetConfirm, setShowOnboardingResetConfirm] = useState(false);
 
   const currentSpiritId = userSpirit ? userSpirit.spiritId : 'fairy';
   const spiritMeta = getSpiritById(currentSpiritId);
-  const spiritName = userSpirit?.customName || 'Hilulu';
+  const spiritName = userSpirit?.customName || 'Tellie Spirit';
 
-  // Private posts
   const privatePosts = posts.filter(p => p.isPrivate);
 
-  const handleSaveName = () => {
-    if (!editedName.trim()) return;
-    updateSpiritName(editedName.trim());
+  const handleSaveNickname = () => {
+    if (!tempNickname.trim()) return;
+    setUserNickname(tempNickname.trim());
     setIsEditingName(false);
+    sound.playChime(640);
   };
 
-  const daysInMonth = 31;
-  const monthName = 'Tháng 10, 2026';
-
-  const moodByDay = (day: number) => {
-    return moodHistory.find(m => {
-      const d = new Date(m.timestamp);
-      return d.getDate() === day;
-    });
+  // Verify PIN for Private Memories
+  const handleUnlockPrivate = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    // Default PIN: 1234
+    if (pinInput.trim() === '1234' || pinInput.trim() === '0000') {
+      setIsPrivateUnlocked(true);
+      setPinError('');
+      sound.playChime(784);
+    } else {
+      setPinError('Mã PIN không chính xác (Gợi ý mã mẫu: 1234)');
+      sound.playChime(320);
+    }
   };
 
   return (
-    <div className="space-y-5 text-left">
-      {/* 1. TOP PROFILE SECTION — MAJOR VISUAL UPGRADE
-          - Larger 3D selected Spirit
-          - Custom Spirit name with inline rename
-          - Soft atmospheric background & glow
-          - Meaningful statistics
-          - Not like a social media profile
-      */}
+    <div className="relative min-h-[90vh] space-y-6 text-left pb-20 animate-fade-in">
+      {/* 1. TOP HEADER WITH BACK BUTTON */}
+      <div className="flex items-center justify-between pb-3 border-b border-white/10">
+        <button
+          type="button"
+          onClick={() => {
+            sound.playChime(500);
+            if (onClose) onClose();
+          }}
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-[#F5F2FA] transition-all"
+        >
+          <ArrowLeft className="w-4 h-4 text-[#B9A9E8]" />
+          <span>Quay lại trang chính</span>
+        </button>
+
+        <span className="text-xs font-extrabold text-[#A8D2C4] uppercase tracking-wider bg-[#A8D2C4]/15 px-3 py-1 rounded-full border border-[#A8D2C4]/25">
+          Hồ Sơ Cá Nhân
+        </span>
+      </div>
+
+      {/* 2. TOP PROFILE HERO CARD */}
       <section className="relative rounded-3xl p-6 border border-[#B9A9E8]/25 shadow-2xl overflow-hidden bg-gradient-to-b from-[#141836] via-[#1A1F42] to-[#10132B]">
-        {/* Luminous aura behind spirit */}
         <div
-          className="absolute -right-10 -top-10 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-50"
+          className="absolute -right-10 -top-10 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-40"
           style={{ background: spiritMeta.glowColor }}
         />
 
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 z-10 relative">
-          {/* Larger 3D Selected Spirit */}
-          <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-3xl bg-[#171A35]/60 border border-white/10 flex items-center justify-center p-2 shrink-0 shadow-2xl glow-lavender">
+          {/* Avatar Tellie Spirit */}
+          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-[#171A35]/80 border border-white/10 flex items-center justify-center p-2 shrink-0 shadow-2xl">
             <SpiritAvatar
               id={currentSpiritId}
               colorId={userSpirit?.colorId}
@@ -92,112 +127,89 @@ export const ProfileView: React.FC = () => {
             />
           </div>
 
-          <div className="flex-1 text-center sm:text-left">
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <span className="text-xs font-bold text-[#858198] tracking-wider uppercase">
-                {userNickname}
-              </span>
-              <span className="text-[10px] text-[#A8D2C4] bg-[#A8D2C4]/15 border border-[#A8D2C4]/25 px-2.5 py-0.5 rounded-full font-semibold">
-                Đồng hành thân thiết
-              </span>
-            </div>
-
-            {/* Custom Spirit Name Display / Editing */}
-            <div className="mt-1 flex items-center justify-center sm:justify-start gap-2">
+          <div className="flex-1 text-center sm:text-left space-y-2">
+            {/* User Name with Edit */}
+            <div className="flex items-center justify-center sm:justify-start gap-2">
               {isEditingName ? (
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   <input
                     type="text"
-                    value={editedName}
-                    onChange={e => setEditedName(e.target.value)}
-                    className="bg-[#11152A] border border-[#B9A9E8] rounded-xl px-3 py-1 text-sm font-bold text-[#F5F2FA] focus:outline-none"
-                    maxLength={20}
+                    value={tempNickname}
+                    onChange={e => setTempNickname(e.target.value)}
+                    className="px-3 py-1.5 rounded-xl bg-[#11152A] border border-[#B9A9E8] text-sm font-bold text-white focus:outline-none"
+                    placeholder="Nhập tên của bạn"
+                    maxLength={25}
                   />
                   <button
-                    onClick={handleSaveName}
-                    className="p-1.5 bg-[#B9A9E8] text-[#0D1020] rounded-xl"
+                    type="button"
+                    onClick={handleSaveNickname}
+                    className="p-1.5 rounded-xl bg-[#B9A9E8] text-[#0D1020]"
                   >
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    <Check className="w-4 h-4 stroke-[3]" />
                   </button>
                 </div>
               ) : (
-                <>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-[#F5F2FA] font-display">
-                    {spiritName}
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-[#FFFFFF] font-display">
+                    {userNickname || 'Bạn'}
                   </h2>
                   <button
+                    type="button"
                     onClick={() => {
-                      setEditedName(spiritName);
+                      setTempNickname(userNickname || '');
                       setIsEditingName(true);
                     }}
-                    className="text-[#858198] hover:text-[#B9A9E8] transition-colors p-1"
-                    title="Đổi tên tinh linh"
+                    className="p-1.5 text-[#B9B5C8] hover:text-white rounded-lg hover:bg-white/5"
+                    title="Đổi tên của bạn"
                   >
-                    <Edit3 className="w-4 h-4" />
+                    <Edit3 className="w-3.5 h-3.5" />
                   </button>
-                </>
+                </div>
               )}
             </div>
 
-            <p className="text-xs text-[#B9B5C8] mt-0.5">
-              {spiritMeta.speciesVi} · {spiritMeta.titleVi} · {spiritMeta.elementVi}
+            <p className="text-xs text-[#E2E8F0]">
+              Linh vật đồng hành: <strong className="text-[#A8D2C4]">{spiritName}</strong>
             </p>
 
+            {/* Custom Tellie Spirit Options Button */}
             <button
-              onClick={() => openModal('spiritSelect')}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#B9A9E8] hover:underline mt-2.5"
+              type="button"
+              onClick={() => {
+                sound.playChime(600);
+                openModal('spiritSelect');
+              }}
+              className="min-h-[40px] inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#242347] hover:bg-[#322f5e] border border-[#B9A9E8]/40 text-xs font-bold text-[#FFFFFF] transition-all shadow-md active:scale-95"
             >
-              <span>Chọn hoặc đổi tinh linh khác</span>
+              <Sparkles className="w-3.5 h-3.5 text-[#B9A9E8]" />
+              <span>Tùy biến diện mạo Tellie Spirit (Màu & Phụ kiện)</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
-
-        {/* Meaningful Emotional Wellness Statistics */}
-        <div className="grid grid-cols-3 gap-2.5 mt-5 pt-5 border-t border-white/10 text-center">
-          <div className="p-2.5 rounded-2xl bg-white/5 border border-white/5">
-            <span className="text-xl font-extrabold text-[#F5F2FA] font-display">
-              {moodHistory.length}
-            </span>
-            <span className="text-[10px] font-semibold text-[#858198] block mt-0.5">Khoảnh khắc soi chiếu</span>
-          </div>
-
-          <div className="p-2.5 rounded-2xl bg-white/5 border border-white/5">
-            <span className="text-xl font-extrabold text-[#A8D2C4] font-display">
-              {gardenPlants.length}
-            </span>
-            <span className="text-[10px] font-semibold text-[#858198] block mt-0.5">Kỷ niệm đã ươm mầm</span>
-          </div>
-
-          <div className="p-2.5 rounded-2xl bg-white/5 border border-white/5">
-            <span className="text-xl font-extrabold text-[#DFAFC8] font-display">
-              {burnedPapers.length}
-            </span>
-            <span className="text-[10px] font-semibold text-[#858198] block mt-0.5">Gánh nặng đã buông</span>
-          </div>
-        </div>
       </section>
 
-      {/* Navigation Sub-Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+      {/* 3. PROFILE SUB-NAVIGATION */}
+      <div className="flex items-center gap-2 border-b border-white/10 pb-2 overflow-x-auto no-scrollbar">
         {[
-          { id: 'timeline', label: 'Dòng Chảy Cảm Xúc', icon: TrendingUp },
-          { id: 'board', label: 'Mood Board', icon: Calendar },
+          { id: 'timeline', label: 'Biểu đồ cảm xúc (Mood Board)', icon: TrendingUp },
           { id: 'private', label: 'Ký ức riêng tư', icon: Lock },
-          { id: 'settings', label: 'Cài đặt', icon: Settings }
+          { id: 'settings', label: 'Cài đặt & Dữ liệu', icon: Settings }
         ].map(tab => {
           const Icon = tab.icon;
+          const isActive = activeSubTab === tab.id;
           return (
             <button
               key={tab.id}
+              type="button"
               onClick={() => {
                 setActiveSubTab(tab.id as any);
                 sound.playChime(500);
               }}
-              className={`px-3.5 py-2 rounded-xl whitespace-nowrap transition-all border flex items-center gap-1.5 ${
-                activeSubTab === tab.id
-                  ? 'bg-[#242347] border-[#B9A9E8] text-[#F5F2FA] font-bold shadow-md'
-                  : 'bg-[#11152A] border-white/5 text-[#858198] hover:text-[#B9B5C8]'
+              className={`min-h-[42px] px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 ${
+                isActive
+                  ? 'bg-[#242347] border border-[#B9A9E8] text-white shadow-md'
+                  : 'text-[#E2E8F0] hover:text-white hover:bg-white/5 border border-transparent'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -207,9 +219,10 @@ export const ProfileView: React.FC = () => {
         })}
       </div>
 
-      {/* 2. DÒNG CHẢY CẢM XÚC: Visual Emotional Timeline & Line Graph */}
+      {/* =========================================================================
+          SECTION A: MOOD BOARD CHARTS & LINE GRAPH
+      ========================================================================= */}
       {activeSubTab === 'timeline' && (() => {
-        // Emotional valence scale 1-5
         const MOOD_VALENCE: Record<string, number> = {
           hopeful: 5,
           grateful: 5,
@@ -246,359 +259,349 @@ export const ProfileView: React.FC = () => {
           : '';
 
         return (
-          <div className="glass-panel rounded-3xl p-5 border border-white/10 space-y-5 shadow-xl">
+          <div className="glass-panel rounded-3xl p-5 sm:p-6 border border-white/15 space-y-6 shadow-xl">
             <div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-bold text-[#F5F2FA] font-display flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-[#A8D2C4]" />
-                    <span>Biểu Đồ & Dòng Chảy Cảm Xúc</span>
-                  </h3>
-                  <p className="text-xs text-[#B9B5C8] mt-0.5">
-                    Theo dõi nhịp điệu và sự chuyển hóa cảm xúc theo dòng thời gian.
-                  </p>
+              <h3 className="text-base sm:text-lg font-bold text-[#FFFFFF] font-display flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-[#A8D2C4]" />
+                <span>Biểu Đồ Theo Dõi Cảm Xúc Theo Thời Gian</span>
+              </h3>
+              <p className="text-xs text-[#E2E8F0] mt-1 leading-relaxed">
+                Biểu đồ đường cong ghi lại nhịp điệu biến chuyển của tâm tư để bạn thấu hiểu chính mình.
+              </p>
+            </div>
+
+            {/* SVG Line Graph */}
+            <div className="rounded-2xl bg-[#090C19]/90 border border-white/10 p-4 overflow-x-auto">
+              <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full h-36 overflow-visible">
+                <defs>
+                  <linearGradient id="profileAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#B9A9E8" stopOpacity="0.35" />
+                    <stop offset="100%" stopColor="#A8D2C4" stopOpacity="0.0" />
+                  </linearGradient>
+                  <linearGradient id="profileLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#B9A9E8" />
+                    <stop offset="50%" stopColor="#91B8E8" />
+                    <stop offset="100%" stopColor="#A8D2C4" />
+                  </linearGradient>
+                </defs>
+
+                {/* Horizontal reference grids */}
+                <line x1={padX} y1={padY} x2={svgW - padX} y2={padY} stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" />
+                <line x1={padX} y1={svgH / 2} x2={svgW - padX} y2={svgH / 2} stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" />
+                <line x1={padX} y1={svgH - padY} x2={svgW - padX} y2={svgH - padY} stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" />
+
+                {/* Shaded Area & Curved Line */}
+                {areaD && <path d={areaD} fill="url(#profileAreaGrad)" />}
+                {pathD && <path d={pathD} fill="none" stroke="url(#profileLineGrad)" strokeWidth="3" strokeLinecap="round" />}
+
+                {/* Mood Points */}
+                {points.map((pt, idx) => {
+                  const moodMeta = getMoodById(pt.entry.moodId);
+                  return (
+                    <g key={idx} className="cursor-pointer">
+                      <circle cx={pt.x} cy={pt.y} r="8" fill="#171A35" stroke={moodMeta.color} strokeWidth="2.5" />
+                      <circle cx={pt.x} cy={pt.y} r="3" fill="#FFFFFF" />
+                      <text x={pt.x} y={svgH - 2} textAnchor="middle" fontSize="9" fill="#CBD5E1">
+                        {new Date(pt.entry.timestamp).getDate()}/{new Date(pt.entry.timestamp).getMonth() + 1}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+
+            {/* Mood Legend Grid */}
+            <div className="grid grid-cols-4 gap-2 text-xs">
+              {MOODS_LIST.map(m => (
+                <div key={m.id} className="p-2 rounded-xl bg-[#11152A] border border-white/5 flex items-center gap-2">
+                  <span className="text-base">{m.icon}</span>
+                  <span className="text-[#F1F5F9] font-medium truncate">{m.labelVi}</span>
                 </div>
-                <span className="text-[10px] text-[#A8D2C4] bg-[#A8D2C4]/15 border border-[#A8D2C4]/25 px-2.5 py-1 rounded-full font-semibold">
-                  8 ghi nhận gần nhất
-                </span>
-              </div>
-            </div>
-
-            {/* SOFT LINE GRAPH COMPONENT */}
-            <div className="relative rounded-2xl p-3.5 bg-gradient-to-b from-[#11152A]/90 to-[#0D1020]/90 border border-white/10 shadow-inner overflow-hidden">
-              <div className="flex items-center justify-between text-[10px] font-semibold text-[#858198] mb-1 px-1">
-                <span>Tươi sáng / Nhẹ nhõm</span>
-                <span>Bình ổn</span>
-                <span>Cần vỗ về / Nghỉ ngơi</span>
-              </div>
-
-              <div className="w-full overflow-x-auto">
-                <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full h-36 overflow-visible">
-                  <defs>
-                    {/* Area Gradient Under Curve */}
-                    <linearGradient id="emotionAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#B9A9E8" stopOpacity="0.38" />
-                      <stop offset="60%" stopColor="#91B8E8" stopOpacity="0.15" />
-                      <stop offset="100%" stopColor="#0D1020" stopOpacity="0.0" />
-                    </linearGradient>
-
-                    {/* Smooth Neon Line Gradient */}
-                    <linearGradient id="emotionLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#A8D2C4" />
-                      <stop offset="50%" stopColor="#B9A9E8" />
-                      <stop offset="100%" stopColor="#DFAFC8" />
-                    </linearGradient>
-                  </defs>
-
-                  {/* Horizontal Guide Grid Lines */}
-                  <line x1={padX} y1={padY} x2={svgW - padX} y2={padY} stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" />
-                  <line x1={padX} y1={svgH / 2} x2={svgW - padX} y2={svgH / 2} stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
-                  <line x1={padX} y1={svgH - padY} x2={svgW - padX} y2={svgH - padY} stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" />
-
-                  {/* Gradient Fill Under Curve */}
-                  {areaD && (
-                    <path d={areaD} fill="url(#emotionAreaGrad)" />
-                  )}
-
-                  {/* Curved Emotion Line */}
-                  {pathD && (
-                    <path
-                      d={pathD}
-                      fill="none"
-                      stroke="url(#emotionLineGrad)"
-                      strokeWidth="3.2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      filter="drop-shadow(0 2px 8px rgba(185,169,232,0.5))"
-                    />
-                  )}
-
-                  {/* Circular Node Points with Mood Icons */}
-                  {points.map((pt, idx) => {
-                    const m = getMoodById(pt.entry.moodId);
-                    return (
-                      <g key={pt.entry.id || idx} className="cursor-pointer group">
-                        {/* Glow halo */}
-                        <circle cx={pt.x} cy={pt.y} r="8" fill={m.color} opacity="0.25" className="animate-pulse" />
-                        {/* White rim border */}
-                        <circle cx={pt.x} cy={pt.y} r="5" fill="#0D1020" stroke={m.color} strokeWidth="2.5" />
-                        <circle cx={pt.x} cy={pt.y} r="2" fill="#FFFFFF" />
-
-                        {/* Date label at bottom */}
-                        <text
-                          x={pt.x}
-                          y={svgH - 2}
-                          textAnchor="middle"
-                          fill="#858198"
-                          fontSize="9"
-                          fontWeight="600"
-                        >
-                          {new Date(pt.entry.timestamp).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </svg>
-              </div>
-
-              {/* Gentle takeaway summary */}
-              <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-[#B9B5C8]">
-                <span className="italic text-[#A8D2C4]">
-                  ✦ Cảm xúc như những gợn sóng biển đêm, tự nhiên lên xuống và luôn có điểm cân bằng.
-                </span>
-                <span className="text-[10px] text-[#858198]">
-                  Cập nhật: Hôm nay
-                </span>
-              </div>
-            </div>
-
-            {/* TIMELINE LIST ENTRIES */}
-            <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-gradient-to-b before:from-[#B9A9E8] before:via-[#91B8E8] before:to-transparent">
-              {moodHistory.slice(0, 8).map(entry => {
-                const m = getMoodById(entry.moodId);
-                return (
-                  <div key={entry.id} className="relative group">
-                    <div
-                      className="absolute -left-6 top-1.5 w-4 h-4 rounded-full border-2 border-[#0D1020] flex items-center justify-center shadow-sm"
-                      style={{ backgroundColor: m.color }}
-                    />
-
-                    <div className="p-3.5 rounded-2xl bg-[#11152A] border border-white/5 text-xs space-y-1 hover:border-white/20 transition-all">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-base">{m.icon}</span>
-                          <span className="font-bold text-[#F5F2FA]">{m.labelVi}</span>
-                          {entry.isNightRitual && (
-                            <span className="text-[10px] text-[#B9A9E8] bg-[#B9A9E8]/10 px-1.5 py-0.5 rounded-md font-semibold">
-                              Mood Night
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[10px] text-[#858198]">
-                          {new Date(entry.timestamp).toLocaleDateString('vi-VN')} {new Date(entry.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-
-                      {entry.note ? (
-                        <p className="text-[#B9B5C8] text-xs leading-relaxed italic pl-1">
-                          "{entry.note}"
-                        </p>
-                      ) : (
-                        <p className="text-[#858198] text-[11px] pl-1">
-                          {m.quoteVi}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+              ))}
             </div>
           </div>
         );
       })()}
 
-      {/* 3. MOOD BOARD: Monthly Visual Calendar */}
-      {activeSubTab === 'board' && (
-        <div className="glass-panel rounded-3xl p-5 border border-white/10 space-y-4 shadow-xl">
+      {/* =========================================================================
+          SECTION B: PASSWORD-PROTECTED PRIVATE MEMORIES
+      ========================================================================= */}
+      {activeSubTab === 'private' && (
+        <div className="glass-panel rounded-3xl p-6 border border-white/15 space-y-5 shadow-xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base sm:text-lg font-bold text-[#FFFFFF] font-display flex items-center gap-2">
+                <Lock className="w-4 h-4 text-[#A8D2C4]" />
+                <span>Ký Ức Riêng Tư (Được Khóa Mật Khẩu)</span>
+              </h3>
+              <p className="text-xs text-[#E2E8F0] mt-1">
+                Không gian bảo mật tuyệt đối cho những trăn trở bạn chỉ muốn giữ cho riêng mình.
+              </p>
+            </div>
+            {isPrivateUnlocked && (
+              <button
+                type="button"
+                onClick={() => setIsPrivateUnlocked(false)}
+                className="text-xs text-[#CBD5E1] hover:text-white px-3 py-1.5 rounded-xl bg-white/5 border border-white/10"
+              >
+                Khóa lại 🔒
+              </button>
+            )}
+          </div>
+
+          {/* LOCKED STATE: PIN INPUT REQUIRED */}
+          {!isPrivateUnlocked ? (
+            <div className="py-8 max-w-sm mx-auto text-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-[#B9A9E8]/20 border border-[#B9A9E8]/40 flex items-center justify-center mx-auto text-[#B9A9E8] shadow-inner">
+                <KeyRound className="w-8 h-8" />
+              </div>
+
+              <div>
+                <h4 className="text-base font-bold text-[#F5F2FA]">
+                  Nhập mã PIN để mở khóa
+                </h4>
+                <p className="text-xs text-[#CBD5E1] mt-1">
+                  Mã PIN bảo vệ góc tâm sự cá nhân (Gợi ý mã thử nghiệm: <strong>1234</strong>)
+                </p>
+              </div>
+
+              <form onSubmit={handleUnlockPrivate} className="space-y-3">
+                <input
+                  type="password"
+                  value={pinInput}
+                  onChange={e => setPinInput(e.target.value)}
+                  placeholder="Nhập mã PIN 4 số"
+                  maxLength={6}
+                  className="w-full text-center tracking-[8px] text-lg px-4 py-3 rounded-2xl bg-[#11152A] border border-white/20 text-white focus:outline-none focus:border-[#B9A9E8]"
+                />
+
+                {pinError && (
+                  <p className="text-xs text-rose-300 font-semibold">{pinError}</p>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-[#B9A9E8] to-[#A8D2C4] text-[#0D0F1D] font-bold text-xs tracking-wide shadow-md active:scale-95 transition-all"
+                >
+                  Mở khóa ký ức
+                </button>
+              </form>
+            </div>
+          ) : (
+            /* UNLOCKED STATE: SHOW PRIVATE POSTS & BURNED PAPERS */
+            <div className="space-y-4 animate-fade-in">
+              {privatePosts.length === 0 && burnedPapers.length === 0 ? (
+                <div className="text-center py-8 text-xs text-[#CBD5E1]">
+                  Chưa có dòng ký ức riêng tư nào. Khi viết tâm sự bạn có thể chọn "Lưu riêng tư".
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {privatePosts.map(p => (
+                    <div key={p.id} className="p-4 rounded-2xl bg-[#11152A] border border-white/10 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-[#FFFFFF] text-sm">{p.title}</span>
+                        <span className="text-[11px] text-[#A8D2C4]">
+                          {new Date(p.createdAt).toLocaleDateString('vi-VN')}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#E2E8F0] leading-relaxed whitespace-pre-line">{p.content}</p>
+                    </div>
+                  ))}
+
+                  {burnedPapers.map(b => (
+                    <div key={b.id} className="p-4 rounded-2xl bg-[#171A35] border border-orange-500/30 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-orange-300 text-xs">🔥 {b.title || 'Áp lực đã buông bỏ'}</span>
+                        <span className="text-[11px] text-[#CBD5E1]">
+                          {new Date(b.burnedAt).toLocaleDateString('vi-VN')}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#E2E8F0] italic">"{b.content}"</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* =========================================================================
+          SECTION C: SETTINGS & STRICT 2-STEP CONFIRMATION FOR RESET LOCALSTORAGE
+      ========================================================================= */}
+      {activeSubTab === 'settings' && (
+        <div className="glass-panel rounded-3xl p-6 border border-white/15 space-y-6 shadow-xl">
           <div>
-            <h3 className="text-base font-bold text-[#F5F2FA] font-display">
-              Mood Board · {monthName}
+            <h3 className="text-base sm:text-lg font-bold text-[#FFFFFF] font-display">
+              Cài Đặt & Dữ Liệu Thiết Bị
             </h3>
-            <p className="text-xs text-[#B9B5C8] mt-0.5">
-              Bản đồ bầu trời cảm xúc trong tháng của bạn.
+            <p className="text-xs text-[#E2E8F0] mt-1">
+              Quản lý dữ liệu lưu trữ trên trình duyệt của bạn một cách an toàn.
             </p>
           </div>
 
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-1.5 text-center text-xs">
-            {['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].map(d => (
-              <span key={d} className="text-[11px] font-bold text-[#858198] py-1">
-                {d}
-              </span>
-            ))}
-
-            <div /><div /><div /><div />
-
-            {Array.from({ length: daysInMonth }).map((_, idx) => {
-              const day = idx + 1;
-              const entry = moodByDay(day);
-              const m = entry ? getMoodById(entry.moodId) : null;
-
-              return (
-                <button
-                  key={day}
-                  onClick={() => {
-                    if (entry) {
-                      setSelectedDayMood(entry);
-                      sound.playChime(560);
-                    }
-                  }}
-                  className={`aspect-square rounded-xl p-1 flex flex-col items-center justify-between border transition-all ${
-                    m
-                      ? 'border-transparent text-[#F5F2FA] font-bold shadow-sm'
-                      : 'bg-[#11152A]/50 border-white/5 text-[#858198]'
-                  } ${day === 30 ? 'ring-2 ring-[#B9A9E8]' : ''}`}
-                  style={{
-                    backgroundColor: m ? `${m.color}35` : undefined
-                  }}
-                >
-                  <span className="text-[10px]">{day}</span>
-                  {m ? (
-                    <span className="text-xs">{m.icon}</span>
-                  ) : (
-                    <span className="w-1 h-1 rounded-full bg-white/10" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Day Inspection Card */}
-          {selectedDayMood && (
-            <div className="p-3.5 rounded-2xl bg-[#171A35] border border-[#B9A9E8]/30 space-y-1.5 text-xs animate-in fade-in duration-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-base">{getMoodById(selectedDayMood.moodId).icon}</span>
-                  <span className="font-bold text-[#F5F2FA]">
-                    {getMoodById(selectedDayMood.moodId).labelVi}
-                  </span>
-                </div>
-                <button
-                  onClick={() => setSelectedDayMood(null)}
-                  className="text-[11px] text-[#858198] hover:text-white"
-                >
-                  Đóng
-                </button>
-              </div>
-              <p className="text-xs text-[#B9B5C8]">
-                {selectedDayMood.note || 'Không có ghi chú thêm.'}
-              </p>
-              <span className="text-[10px] text-[#858198] block">
-                Thời gian: {new Date(selectedDayMood.timestamp).toLocaleString('vi-VN')}
-              </span>
-            </div>
-          )}
-
-          {/* Mood Legend strictly without medical diagnosis disclaimer */}
-          <div className="pt-2 border-t border-white/5">
-            <span className="text-[10px] text-[#858198] uppercase tracking-wider block mb-2 font-bold">
-              Bảng màu cảm xúc
+          <div className="space-y-3 pt-2 border-t border-white/10">
+            <span className="text-xs font-bold text-[#F5F2FA] uppercase tracking-wider block">
+              Dọn dẹp và đặt lại
             </span>
-            <div className="grid grid-cols-4 gap-1.5 text-[11px]">
-              {MOODS_LIST.map(mood => (
-                <div key={mood.id} className="flex items-center gap-1.5 text-[#B9B5C8]">
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: mood.color }} />
-                  <span className="truncate">{mood.labelVi}</span>
-                </div>
-              ))}
-            </div>
 
-            <div className="mt-4 p-3 rounded-xl bg-white/5 text-[11px] text-[#858198] flex items-start gap-2">
-              <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#B9A9E8]" />
-              <span>
-                <strong>Lưu ý:</strong> Tellie là dự án Design Thinking hỗ trợ nâng cao sức khỏe cảm xúc cho sinh viên. Biểu đồ cảm xúc này mang tính chất tự soi chiếu bản thân, không phải kết luận hoặc chẩn đoán y khoa.
-              </span>
-            </div>
+            {/* RESET LOCALSTORAGE BUTTON (TRIGGERS STRICT 2-STEP PROMPT) */}
+            <button
+              type="button"
+              onClick={() => {
+                sound.playChime(480);
+                setResetModalStep(1);
+              }}
+              className="w-full min-h-[48px] py-3 px-4 rounded-2xl bg-rose-950/40 hover:bg-rose-900/50 border border-rose-500/40 text-rose-200 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
+            >
+              <RotateCcw className="w-4 h-4 text-rose-400" />
+              <span>Đặt lại dữ liệu ứng dụng (Reset LocalStorage)</span>
+            </button>
           </div>
         </div>
       )}
 
-      {/* 4. KÝ ỨC RIÊNG TƯ */}
-      {activeSubTab === 'private' && (
-        <div className="glass-panel rounded-3xl p-5 border border-white/10 space-y-4 shadow-xl">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-bold text-[#F5F2FA] font-display">
-                Góc Riêng Tư Của Bạn
-              </h3>
-              <p className="text-xs text-[#B9B5C8] mt-0.5">
-                Các bài viết bạn đã chọn "Lưu riêng tư" và những tờ giấy buông bỏ được giữ kín.
-              </p>
+      {/* 4. DÀNH CHO THỬ NGHIỆM (TESTING ONBOARDING RESET) */}
+      <div className="pt-6 border-t border-white/10 text-center">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold text-[#CBD5E1] tracking-wider uppercase mb-2">
+          <span>Dành cho thử nghiệm</span>
+        </div>
+        <p className="text-xs text-[#CBD5E1] max-w-xs mx-auto mb-3">
+          Kiểm tra lại toàn bộ quy trình onboarding từ màn hình Chào bạn ✨ đến tùy biến Tellie Spirit.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            sound.playChime(500);
+            setShowOnboardingResetConfirm(true);
+          }}
+          className="min-h-[44px] px-4 py-2.5 rounded-2xl bg-[#171A35] hover:bg-[#202547] border border-[#B9A9E8]/30 hover:border-[#B9A9E8]/60 text-xs font-semibold text-[#D4CBE5] hover:text-white transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 mx-auto"
+        >
+          <RotateCcw className="w-3.5 h-3.5 text-[#B9A9E8]" />
+          <span>Đặt lại trải nghiệm onboarding</span>
+        </button>
+      </div>
+
+      {/* =========================================================================
+          STRICT 2-STEP CONFIRMATION MODAL FOR RESET LOCALSTORAGE
+      ========================================================================= */}
+      {resetModalStep > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in text-center">
+          <div className="w-full max-w-md rounded-3xl bg-[#11152A] border border-rose-500/40 p-6 shadow-2xl space-y-5">
+            <div className="w-14 h-14 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-7 h-7" />
             </div>
-            <Lock className="w-4 h-4 text-[#A8D2C4]" />
-          </div>
 
-          <div className="space-y-3">
-            {privatePosts.length === 0 && burnedPapers.length === 0 ? (
-              <div className="text-center py-8 text-xs text-[#858198]">
-                Chưa có ghi chú riêng tư nào. Khi viết tâm sự hoặc đốt áp lực, bạn có thể chọn "Lưu riêng tư".
+            {/* STEP 1 OF 2 */}
+            {resetModalStep === 1 && (
+              <div className="space-y-3">
+                <span className="text-[11px] font-extrabold text-rose-400 uppercase tracking-wider bg-rose-950/60 px-3 py-1 rounded-full border border-rose-500/30">
+                  Bước 1/2 · Cảnh Báo
+                </span>
+                <h4 className="text-base sm:text-lg font-bold text-[#FFFFFF]">
+                  Xác nhận đặt lại toàn bộ dữ liệu?
+                </h4>
+                <p className="text-xs text-[#E2E8F0] leading-relaxed">
+                  Thao tác này sẽ xóa sạch nhật ký, các mầm cây trong Vườn Tellie, lịch sử cảm xúc và thiết lập cá nhân được lưu trên máy của bạn.
+                </p>
+
+                <div className="flex items-center gap-2.5 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => setResetModalStep(0)}
+                    className="flex-1 min-h-[44px] py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-[#E2E8F0]"
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playChime(520);
+                      setResetModalStep(2);
+                    }}
+                    className="flex-1 min-h-[44px] py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-[#0D1020] font-bold text-xs shadow-md"
+                  >
+                    Tiếp tục sang Bước 2 →
+                  </button>
+                </div>
               </div>
-            ) : (
-              <>
-                {privatePosts.map(p => (
-                  <div key={p.id} className="p-3.5 rounded-2xl bg-[#11152A] border border-white/10 text-xs space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#F5F2FA]">{p.title}</span>
-                      <span className="text-[10px] text-[#858198]">
-                        {new Date(p.createdAt).toLocaleDateString('vi-VN')}
-                      </span>
-                    </div>
-                    <p className="text-xs text-[#B9B5C8] leading-relaxed">{p.content}</p>
-                  </div>
-                ))}
+            )}
 
-                {burnedPapers.map(b => (
-                  <div key={b.id} className="p-3.5 rounded-2xl bg-[#171A35] border border-[#F4EEDC]/20 text-xs space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#F4EEDC]">🔥 {b.title}</span>
-                      <span className="text-[10px] text-[#858198]">
-                        {new Date(b.burnedAt).toLocaleDateString('vi-VN')}
-                      </span>
-                    </div>
-                    <p className="text-xs text-[#B9B5C8] italic">"{b.content}"</p>
-                  </div>
-                ))}
-              </>
+            {/* STEP 2 OF 2 */}
+            {resetModalStep === 2 && (
+              <div className="space-y-3">
+                <span className="text-[11px] font-extrabold text-rose-300 uppercase tracking-wider bg-rose-950/80 px-3 py-1 rounded-full border border-rose-500/50">
+                  Bước 2/2 · Xác Nhận Lần Cuối
+                </span>
+                <h4 className="text-base sm:text-lg font-extrabold text-white">
+                  Bạn có thực sự chắc chắn không?
+                </h4>
+                <p className="text-xs text-rose-200 leading-relaxed font-medium">
+                  Dữ liệu sau khi xóa sẽ <strong>KHÔNG THỂ PHỤC HỒI</strong>. Bạn sẽ bắt đầu lại như một người dùng hoàn toàn mới.
+                </p>
+
+                <div className="flex items-center gap-2.5 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => setResetModalStep(0)}
+                    className="flex-1 min-h-[44px] py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-[#E2E8F0]"
+                  >
+                    Giữ lại dữ liệu
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetAllData();
+                      setResetModalStep(0);
+                      sound.playChime(420);
+                      if (onClose) onClose();
+                    }}
+                    className="flex-1 min-h-[44px] py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-xl active:scale-95"
+                  >
+                    Xác nhận xóa vĩnh viễn
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
       )}
 
-      {/* 5. CÀI ĐẶT & THIẾT LẬP */}
-      {activeSubTab === 'settings' && (
-        <div className="glass-panel rounded-3xl p-5 border border-white/10 space-y-4 text-xs shadow-xl">
-          <div>
-            <h3 className="text-base font-bold text-[#F5F2FA] font-display">
-              Cài đặt & Dữ liệu
-            </h3>
-            <p className="text-xs text-[#B9B5C8] mt-0.5">
-              Tùy chỉnh biệt danh và quản lý dữ liệu nguyên mẫu trên thiết bị của bạn.
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <div>
-              <label className="block text-[11px] font-bold text-[#858198] uppercase tracking-wider mb-1">
-                Biệt danh ẩn danh trong trường
-              </label>
-              <input
-                type="text"
-                value={userNickname}
-                onChange={e => setUserNickname(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#11152A] border border-white/10 text-xs text-[#F5F2FA] focus:outline-none focus:border-[#B9A9E8]"
-              />
+      {/* CONFIRMATION FOR RESET ONBOARDING */}
+      {showOnboardingResetConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-3xl bg-[#11152A] border border-white/15 p-6 shadow-2xl text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#B9A9E8]/15 border border-[#B9A9E8]/30 flex items-center justify-center mx-auto text-[#B9A9E8]">
+              <Sparkles className="w-6 h-6 animate-pulse" />
             </div>
 
-            <div className="pt-3 border-t border-white/5 space-y-2">
-              <span className="block text-[11px] font-bold text-[#858198] uppercase tracking-wider">
-                Về TELLIE Prototype
-              </span>
-              <p className="text-[#B9B5C8] leading-relaxed">
-                Phiên bản dự án Design Thinking cho sinh viên đại học. Toàn bộ thông tin được lưu trữ cục bộ trong localStorage của trình duyệt, không chia sẻ cho bên thứ ba.
+            <div className="space-y-1.5">
+              <h4 className="text-base font-bold text-[#F5F2FA] font-display">
+                Xác nhận đặt lại
+              </h4>
+              <p className="text-sm text-[#D4CBE5] leading-relaxed font-medium">
+                Bạn có muốn bắt đầu lại trải nghiệm từ đầu không?
               </p>
             </div>
 
-            <div className="pt-3 border-t border-white/5">
+            <div className="flex items-center gap-3 pt-2">
               <button
-                onClick={() => {
-                  if (confirm('Bạn có chắc chắn muốn đặt lại dữ liệu nguyên mẫu về ban đầu?')) {
-                    resetAllData();
-                  }
-                }}
-                className="w-full py-2.5 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-300 font-bold hover:bg-rose-900/40 transition-colors flex items-center justify-center gap-1.5"
+                type="button"
+                onClick={() => setShowOnboardingResetConfirm(false)}
+                className="flex-1 min-h-[44px] py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-medium text-[#B9B5C8] transition-colors"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Đặt lại toàn bộ dữ liệu mẫu</span>
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowOnboardingResetConfirm(false);
+                  resetOnboarding();
+                  if (onClose) onClose();
+                }}
+                className="flex-1 min-h-[44px] py-2.5 rounded-xl bg-gradient-to-r from-[#B9A9E8] to-[#A8D2C4] hover:opacity-95 text-xs font-bold text-[#0D0F1D] shadow-lg transition-transform active:scale-95"
+              >
+                Đồng ý
               </button>
             </div>
           </div>

@@ -13,8 +13,45 @@ export interface SpiritMetadata {
   elementVi: string;
 }
 
-export type FairyColorId = 'gray' | 'mint' | 'lavender' | 'blue' | 'rose' | 'cream' | 'peach' | 'charcoal';
-export type FairyAccessory = 'none' | 'bow' | 'wreath' | 'hairpin' | 'glasses';
+export type FairyColorId = 
+  | 'pink_powder'    // 1. Hồng phấn — #F4B8D4
+  | 'lavender'       // 2. Tím lavender — #C9B6F2
+  | 'baby_blue'      // 3. Xanh baby — #AFCDF5
+  | 'mint'           // 4. Xanh mint — #B8E3D5
+  | 'night_blue'     // 5. Xanh đêm — #7183B8
+  | 'pastel_peach'   // 6. Đào pastel — #F6C5B0
+  | 'cream_yellow'   // 7. Vàng kem — #F3DFA5
+  | 'pearl_white'    // 8. Trắng ngọc trai — #E9EDF5
+  // Backward compatibility aliases
+  | 'gray'
+  | 'rose'
+  | 'blue'
+  | 'cream'
+  | 'peach'
+  | 'charcoal';
+
+export type FairyAccessory = 
+  | 'none'
+  | 'ribbon_bow'       // 1. 🎀 Nơ ruy-băng
+  | 'butterfly_clip'   // 2. 🦋 Kẹp tóc bướm
+  | 'small_wreath'     // 3. 🌸 Vòng hoa nhỏ
+  | 'vine_clip'        // 4. 🌿 Kẹp lá dây leo
+  | 'moon_clip'        // 5. 🌙 Kẹp mặt trăng
+  | 'star_clip'        // 6. ⭐ Kẹp ngôi sao
+  | 'flower_crown'     // 7. 👑 Vương miện hoa
+  | 'crystal_tiara'    // 8. 💎 Tiara pha lê
+  | 'light_halo'       // 9. ✨ Halo ánh sáng
+  | 'lavender_flower'  // 10. 🌿 Hoa lavender cài tóc
+  | 'butterfly_perch'  // 11. 🦋 Bướm đậu trên tóc
+  | 'mushroom_clip'    // 12. 🍄 Kẹp nấm nhỏ
+  | 'leaf_wreath'      // 13. 🌿 Vòng lá
+  | 'seashell_clip'    // 14. 🐚 Kẹp vỏ sò
+  | 'pearls'           // 15. 🤍 Ngọc trai quanh tóc
+  | 'glasses'          // 16. 👓 Kính tròn
+  // Backward compatibility aliases
+  | 'bow'
+  | 'wreath'
+  | 'hairpin';
 
 export interface UserSpirit {
   spiritId: SpiritId;
@@ -126,7 +163,15 @@ export interface BurnedPaper {
   keptPrivate: boolean;
 }
 
-export type ActiveTab = 'home' | 'listen' | 'connect' | 'profile' | 'garden';
+export type ActiveTab = 
+  | 'home' 
+  | 'journal' 
+  | 'zen' 
+  | 'community' 
+  | 'profile' 
+  | 'listen' 
+  | 'connect' 
+  | 'garden';
 
 export type ActiveModal = 
   | null 
@@ -139,4 +184,5 @@ export type ActiveModal =
   | 'tellieMate' 
   | 'gardenPlantModal'
   | 'tellieGarden'
-  | 'spiritSelect';
+  | 'spiritSelect'
+  | 'moodCheckIn';

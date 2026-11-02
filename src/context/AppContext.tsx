@@ -72,6 +72,11 @@ interface AppContextType {
   userNickname: string;
   setUserNickname: (name: string) => void;
   resetAllData: () => void;
+
+  // Onboarding
+  hasCompletedOnboarding: boolean;
+  completeOnboarding: (userName: string, colorId: FairyColorId, accessory: FairyAccessory) => void;
+  resetOnboarding: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -83,14 +88,24 @@ const STORAGE_KEYS = {
   POSTS: 'tellie_posts_v1',
   GARDEN_PLANTS: 'tellie_garden_plants_v1',
   BURNED_PAPERS: 'tellie_burned_papers_v1',
-  USER_NICKNAME: 'tellie_nickname_v1'
+  USER_NICKNAME: 'tellie_nickname_v1',
+  ONBOARDING_COMPLETED: 'tellie_onboarding_completed_v1'
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
 
-  // 1. Spirit state
+  // 0. Onboarding state
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.ONBOARDING_COMPLETED) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  // 1. Spirit state (Always named "Tellie Spirit")
   const [userSpirit, setUserSpirit] = useState<UserSpirit | null>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.USER_SPIRIT);
@@ -99,15 +114,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return {
           ...parsed,
           spiritId: 'fairy',
-          colorId: parsed.colorId || 'gray',
+          colorId: parsed.colorId || 'pearl_white',
           accessory: parsed.accessory || 'none',
-          customName: parsed.customName && parsed.customName !== 'Hilulu' ? parsed.customName : 'Fairy'
+          customName: 'Tellie Spirit'
         };
       }
       return {
         spiritId: 'fairy',
-        customName: 'Fairy',
-        colorId: 'gray',
+        customName: 'Tellie Spirit',
+        colorId: 'pearl_white',
         accessory: 'none',
         selectedAt: new Date().toISOString(),
         happiness: 100
@@ -115,8 +130,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {
       return {
         spiritId: 'fairy',
-        customName: 'Fairy',
-        colorId: 'gray',
+        customName: 'Tellie Spirit',
+        colorId: 'pearl_white',
         accessory: 'none',
         selectedAt: new Date().toISOString(),
         happiness: 100
@@ -226,16 +241,60 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setActiveModal(null);
   };
 
-  // Spirit actions
+  // Onboarding actions
+  const completeOnboarding = (userName: string, colorId: FairyColorId, accessory: FairyAccessory) => {
+    const finalUserName = userName.trim() || 'Bạn Mới';
+    setUserNickname(finalUserName);
+
+    const finalSpirit: UserSpirit = {
+      spiritId: 'fairy',
+      customName: 'Tellie Spirit',
+      colorId,
+      accessory,
+      selectedAt: new Date().toISOString(),
+      happiness: 100
+    };
+    setUserSpirit(finalSpirit);
+    localStorage.setItem(STORAGE_KEYS.USER_SPIRIT, JSON.stringify(finalSpirit));
+
+    localStorage.setItem(STORAGE_KEYS.ONBOARDING_COMPLETED, 'true');
+    setHasCompletedOnboarding(true);
+    setActiveTab('home');
+    sound.playChime(784);
+  };
+
+  const resetOnboarding = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEYS.ONBOARDING_COMPLETED);
+      localStorage.removeItem(STORAGE_KEYS.USER_NICKNAME);
+      localStorage.removeItem(STORAGE_KEYS.USER_SPIRIT);
+    } catch {}
+
+    const defaultSpirit: UserSpirit = {
+      spiritId: 'fairy',
+      customName: 'Tellie Spirit',
+      colorId: 'pearl_white',
+      accessory: 'none',
+      selectedAt: new Date().toISOString(),
+      happiness: 100
+    };
+    setUserSpirit(defaultSpirit);
+    setUserNicknameState('');
+    setHasCompletedOnboarding(false);
+    setActiveTab('home');
+    sound.playChime(520);
+  };
+
+  // Spirit actions (Tellie Spirit is always named "Tellie Spirit")
   const setUserSpiritData = (
-    spiritId: SpiritId,
-    customName: string,
-    colorId: FairyColorId = 'gray',
+    _spiritId: SpiritId = 'fairy',
+    _customName?: string,
+    colorId: FairyColorId = 'pearl_white',
     accessory: FairyAccessory = 'none'
   ) => {
     const newSpirit: UserSpirit = {
-      spiritId,
-      customName: customName.trim() || 'Fairy',
+      spiritId: 'fairy',
+      customName: 'Tellie Spirit',
       colorId,
       accessory,
       selectedAt: new Date().toISOString(),
@@ -246,7 +305,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const customizeFairy = ({
-    customName,
     colorId,
     accessory
   }: {
@@ -257,25 +315,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUserSpirit(prev => {
       const base: UserSpirit = prev || {
         spiritId: 'fairy',
-        customName: 'Fairy',
-        colorId: 'gray',
+        customName: 'Tellie Spirit',
+        colorId: 'pearl_white',
         accessory: 'none',
         selectedAt: new Date().toISOString(),
         happiness: 100
       };
       return {
         ...base,
-        customName: customName !== undefined && customName.trim().length > 0 ? customName.trim() : base.customName,
-        colorId: colorId !== undefined ? colorId : base.colorId || 'gray',
+        customName: 'Tellie Spirit',
+        colorId: colorId !== undefined ? colorId : base.colorId || 'pearl_white',
         accessory: accessory !== undefined ? accessory : base.accessory || 'none'
       };
     });
     sound.playChime(640);
   };
 
-  const updateSpiritName = (newName: string) => {
+  const updateSpiritName = (_newName: string) => {
     if (!userSpirit) return;
-    const updated = { ...userSpirit, customName: newName.trim() };
+    const updated = { ...userSpirit, customName: 'Tellie Spirit' };
     setUserSpirit(updated);
     sound.playChime(520);
   };
@@ -545,7 +603,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         burnPaper,
         userNickname,
         setUserNickname,
-        resetAllData
+        resetAllData,
+        hasCompletedOnboarding,
+        completeOnboarding,
+        resetOnboarding
       }}
     >
       {children}

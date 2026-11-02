@@ -13,6 +13,7 @@ export const SafeSpaceModal: React.FC<SafeSpaceModalProps> = ({ isOpen, onClose 
   const { userSpirit } = useApp();
   const [activeTab, setActiveTab] = useState<'breathe' | 'reflect' | 'journal'>('breathe');
   const [ambientSound, setAmbientSound] = useState<'rain' | 'crickets' | 'starlight' | null>('rain');
+  const [ambientVolume, setAmbientVolume] = useState<number>(0.6);
   const [lampOn, setLampOn] = useState(true);
   const [journalText, setJournalText] = useState('');
   const [savedJournal, setSavedJournal] = useState(false);
@@ -29,6 +30,7 @@ export const SafeSpaceModal: React.FC<SafeSpaceModalProps> = ({ isOpen, onClose 
     // Auto-start rain ambient sound if enabled
     if (ambientSound) {
       sound.startAmbient(ambientSound);
+      sound.setAmbientVolume(ambientVolume);
     }
     return () => {
       sound.stopAmbient();
@@ -68,7 +70,13 @@ export const SafeSpaceModal: React.FC<SafeSpaceModalProps> = ({ isOpen, onClose 
     } else {
       sound.startAmbient(type);
       setAmbientSound(type);
+      sound.setAmbientVolume(ambientVolume);
     }
+  };
+
+  const handleVolumeChange = (val: number) => {
+    setAmbientVolume(val);
+    sound.setAmbientVolume(val);
   };
 
   const getPhaseText = () => {
@@ -191,39 +199,89 @@ export const SafeSpaceModal: React.FC<SafeSpaceModalProps> = ({ isOpen, onClose 
         </div>
 
         {/* Ambient Sounds Bar with boosted volume & slider */}
-        <div className="mt-3 p-3 rounded-2xl bg-[#11152A] border border-white/5 space-y-2 text-xs">
+        <div className="mt-3 p-3.5 rounded-2xl bg-[#11152A] border border-white/10 space-y-2.5 text-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] text-[#858198] flex items-center gap-1.5 font-medium">
+            <span className="text-[11px] text-[#CBD5E1] flex items-center gap-1.5 font-bold">
               {ambientSound ? <Volume2 className="w-3.5 h-3.5 text-[#A8D2C4]" /> : <VolumeX className="w-3.5 h-3.5 text-[#858198]" />}
               <span>Âm thanh thư giãn:</span>
-              <span className="text-[10px] text-[#A8D2C4] font-semibold">Âm lượng dịu êm</span>
+              <span className="text-[10px] text-[#A8D2C4] font-semibold bg-[#A8D2C4]/15 px-2 py-0.5 rounded-full">
+                {ambientSound ? `${Math.round(ambientVolume * 100)}%` : 'Đang tắt'}
+              </span>
             </span>
             <div className="flex gap-1.5">
               <button
+                type="button"
                 onClick={() => handleToggleSound('rain')}
                 className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-colors ${
-                  ambientSound === 'rain' ? 'bg-[#91B8E8] text-[#0D1020] shadow-sm' : 'bg-white/5 text-[#B9B5C8] hover:bg-white/10'
+                  ambientSound === 'rain' ? 'bg-[#91B8E8] text-[#0D1020] shadow-sm font-bold' : 'bg-white/5 text-[#B9B5C8] hover:bg-white/10'
                 }`}
               >
                 Tiếng mưa rơi
               </button>
               <button
+                type="button"
                 onClick={() => handleToggleSound('crickets')}
                 className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-colors ${
-                  ambientSound === 'crickets' ? 'bg-[#A8D2C4] text-[#0D1020] shadow-sm' : 'bg-white/5 text-[#B9B5C8] hover:bg-white/10'
+                  ambientSound === 'crickets' ? 'bg-[#A8D2C4] text-[#0D1020] shadow-sm font-bold' : 'bg-white/5 text-[#B9B5C8] hover:bg-white/10'
                 }`}
               >
                 Dế đêm
               </button>
               <button
+                type="button"
                 onClick={() => handleToggleSound('starlight')}
                 className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-colors ${
-                  ambientSound === 'starlight' ? 'bg-[#B9A9E8] text-[#0D1020] shadow-sm' : 'bg-white/5 text-[#B9B5C8] hover:bg-white/10'
+                  ambientSound === 'starlight' ? 'bg-[#B9A9E8] text-[#0D1020] shadow-sm font-bold' : 'bg-white/5 text-[#B9B5C8] hover:bg-white/10'
                 }`}
               >
                 Sóng tĩnh lặng (432Hz)
               </button>
             </div>
+          </div>
+
+          {/* Volume Slider Bar */}
+          <div className="pt-1.5 flex items-center gap-2.5 border-t border-white/5">
+            <button
+              type="button"
+              onClick={() => {
+                if (ambientVolume > 0) {
+                  handleVolumeChange(0);
+                } else {
+                  handleVolumeChange(0.6);
+                  if (!ambientSound) handleToggleSound('rain');
+                }
+              }}
+              className="p-1 rounded text-[#CBD5E1] hover:text-white"
+              title={ambientVolume === 0 ? 'Bật âm lượng' : 'Tắt tiếng'}
+            >
+              {ambientVolume === 0 || !ambientSound ? (
+                <VolumeX className="w-3.5 h-3.5 text-rose-400" />
+              ) : (
+                <Volume2 className="w-3.5 h-3.5 text-emerald-300" />
+              )}
+            </button>
+
+            <span className="text-[10px] text-[#CBD5E1]">Âm lượng:</span>
+
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={Math.round(ambientVolume * 100)}
+              onChange={(e) => {
+                const val = Number(e.target.value) / 100;
+                handleVolumeChange(val);
+                if (!ambientSound && val > 0) {
+                  handleToggleSound('rain');
+                }
+              }}
+              className="flex-1 h-1.5 bg-[#242347] rounded-lg appearance-none cursor-pointer accent-emerald-400"
+              aria-label="Thanh kéo tăng giảm âm lượng"
+            />
+
+            <span className="text-[10px] font-mono text-[#A8D2C4] font-bold min-w-[30px] text-right">
+              {Math.round(ambientVolume * 100)}%
+            </span>
           </div>
         </div>
 

@@ -37,211 +37,239 @@ export const SpiritAvatar: React.FC<SpiritAvatarProps> = ({
     massive: 'w-72 h-72 sm:w-84 sm:h-84'
   };
 
-  // Determine effective color: default at start MUST be 'gray' (màu xám, có cánh, không có phụ kiện)
-  const effectiveColor: FairyColorId = colorId || (
-    id === 'flower' ? 'mint' :
-    id === 'moon' ? 'lavender' :
-    id === 'cloud' ? 'blue' :
-    id === 'bunny' ? 'rose' :
-    id === 'star' ? 'cream' :
-    id === 'mushroom' ? 'peach' :
-    'gray'
-  );
+  // Map any colorId or legacy ID to one of the 8 canonical pastel/dreamy colors
+  const normalizeFairyColor = (c?: FairyColorId): FairyColorId => {
+    switch (c) {
+      case 'pink_powder':
+      case 'rose':
+        return 'pink_powder';
+      case 'lavender':
+        return 'lavender';
+      case 'baby_blue':
+      case 'blue':
+        return 'baby_blue';
+      case 'mint':
+        return 'mint';
+      case 'night_blue':
+      case 'charcoal':
+        return 'night_blue';
+      case 'pastel_peach':
+      case 'peach':
+        return 'pastel_peach';
+      case 'cream_yellow':
+      case 'cream':
+        return 'cream_yellow';
+      case 'pearl_white':
+      case 'gray':
+      default:
+        return 'pearl_white';
+    }
+  };
+
+  const effectiveColor: FairyColorId = normalizeFairyColor(colorId);
 
   const getFairyTheme = () => {
     switch (effectiveColor) {
-      case 'mint':
+      case 'pink_powder':
+        // 1. Hồng phấn — #F4B8D4
         return {
-          name: 'Mint Fairy',
+          name: 'Hồng phấn Fairy',
           bodyHighlight: '#FFFFFF',
-          bodyLight: '#E8FAF3',
-          bodyMid: '#B5E8D5',
-          bodyShadow: '#6BC4A6',
-          bodyDark: '#3A9679',
+          bodyLight: '#FDEEF5',
+          bodyMid: '#F4B8D4',
+          bodyShadow: '#DE8EB7',
+          bodyDark: '#B85E8C',
           hairHighlight: '#FFFFFF',
-          hairLight: '#EAF7F2',
-          hairMid: '#BCE5D3',
-          hairShadow: '#7EC4A8',
-          dressLight: '#F2FBF6',
-          dressMid: '#C8EADB',
-          dressShadow: '#96D0BC',
-          rimLight: '#B2F6E3',
-          ambientGlow: 'rgba(168, 210, 196, 0.6)',
-          wingCream: '#FFFFF4',
-          wingTint: '#E3F8EE',
-          wingGlow: 'rgba(168, 245, 226, 0.55)',
-          blush: '#FFAEBE',
-          accent: '#A8D2C4',
-          particleColor: '#E5FAF1'
+          hairLight: '#FEF3F8',
+          hairMid: '#F4B8D4',
+          hairShadow: '#D884AB',
+          dressLight: '#FDF2F7',
+          dressMid: '#F7C6DE',
+          dressShadow: '#DE8EB7',
+          rimLight: '#FCE4F0',
+          ambientGlow: 'rgba(244, 184, 212, 0.65)',
+          wingCream: '#FFFFFA',
+          wingTint: '#FDF2F7',
+          wingGlow: 'rgba(244, 184, 212, 0.6)',
+          blush: '#FFA8C2',
+          accent: '#F4B8D4',
+          particleColor: '#FDF2F7'
         };
       case 'lavender':
+        // 2. Tím lavender — #C9B6F2
         return {
-          name: 'Lavender Fairy',
+          name: 'Tím lavender Fairy',
           bodyHighlight: '#FFFFFF',
-          bodyLight: '#F3EFFF',
-          bodyMid: '#D4CBF5',
-          bodyShadow: '#AEA0E3',
-          bodyDark: '#7E6BC4',
+          bodyLight: '#F5F0FD',
+          bodyMid: '#C9B6F2',
+          bodyShadow: '#A48DE0',
+          bodyDark: '#7B62C2',
           hairHighlight: '#FFFFFF',
-          hairLight: '#EDE6FD',
-          hairMid: '#C8BDF1',
-          hairShadow: '#9F8FE0',
-          dressLight: '#F5F2FE',
-          dressMid: '#DAD1F7',
-          dressShadow: '#B5A6E8',
-          rimLight: '#E5DDFE',
-          ambientGlow: 'rgba(185, 169, 232, 0.65)',
-          wingCream: '#FFFFFA',
-          wingTint: '#EEE8FC',
-          wingGlow: 'rgba(185, 169, 232, 0.6)',
+          hairLight: '#F8F4FE',
+          hairMid: '#C9B6F2',
+          hairShadow: '#A287DE',
+          dressLight: '#FAF6FE',
+          dressMid: '#D8C7F7',
+          dressShadow: '#B29DE8',
+          rimLight: '#ECE4FD',
+          ambientGlow: 'rgba(201, 182, 242, 0.65)',
+          wingCream: '#FFFFFC',
+          wingTint: '#F5F0FD',
+          wingGlow: 'rgba(201, 182, 242, 0.6)',
           blush: '#FFAFD6',
-          accent: '#B9A9E8',
-          particleColor: '#EFEAFF'
+          accent: '#C9B6F2',
+          particleColor: '#F5F0FD'
         };
-      case 'blue':
+      case 'baby_blue':
+        // 3. Xanh baby — #AFCDF5
         return {
-          name: 'Blue Fairy',
+          name: 'Xanh baby Fairy',
           bodyHighlight: '#FFFFFF',
-          bodyLight: '#EBF4FD',
-          bodyMid: '#BCD9F8',
-          bodyShadow: '#82B2E6',
-          bodyDark: '#568DC7',
+          bodyLight: '#EEF5FD',
+          bodyMid: '#AFCDF5',
+          bodyShadow: '#7FAEE4',
+          bodyDark: '#5283C4',
           hairHighlight: '#FFFFFF',
-          hairLight: '#E3F1FD',
-          hairMid: '#B2D5F8',
-          hairShadow: '#76A8DE',
-          dressLight: '#F0F6FD',
-          dressMid: '#C2DEF9',
-          dressShadow: '#8BB8E8',
-          rimLight: '#B8E0FD',
-          ambientGlow: 'rgba(145, 184, 232, 0.6)',
-          wingCream: '#FFFFF6',
-          wingTint: '#E0F0FC',
-          wingGlow: 'rgba(145, 184, 232, 0.55)',
+          hairLight: '#F2F7FE',
+          hairMid: '#AFCDF5',
+          hairShadow: '#78A7DE',
+          dressLight: '#F3F8FE',
+          dressMid: '#C2DAF8',
+          dressShadow: '#8FB7E8',
+          rimLight: '#DBEBFC',
+          ambientGlow: 'rgba(175, 205, 245, 0.65)',
+          wingCream: '#FFFFFA',
+          wingTint: '#EEF5FD',
+          wingGlow: 'rgba(175, 205, 245, 0.58)',
           blush: '#FFAEC7',
-          accent: '#91B8E8',
-          particleColor: '#D8ECFD'
+          accent: '#AFCDF5',
+          particleColor: '#EEF5FD'
         };
-      case 'rose':
+      case 'mint':
+        // 4. Xanh mint — #B8E3D5
         return {
-          name: 'Rose Fairy',
+          name: 'Xanh mint Fairy',
           bodyHighlight: '#FFFFFF',
-          bodyLight: '#FDF2F8',
-          bodyMid: '#F5C2DF',
-          bodyShadow: '#D88EBA',
-          bodyDark: '#B3558F',
+          bodyLight: '#F0FAF6',
+          bodyMid: '#B8E3D5',
+          bodyShadow: '#80C6B2',
+          bodyDark: '#4F9E88',
           hairHighlight: '#FFFFFF',
-          hairLight: '#FDECF5',
-          hairMid: '#F0B6D5',
-          hairShadow: '#D47CA8',
-          dressLight: '#FDF4F9',
-          dressMid: '#F6CEE2',
-          dressShadow: '#DF9CBE',
-          rimLight: '#FCE0EE',
-          ambientGlow: 'rgba(235, 155, 187, 0.6)',
-          wingCream: '#FFFFF8',
-          wingTint: '#FBE8F2',
-          wingGlow: 'rgba(235, 155, 187, 0.55)',
-          blush: '#FFA8C2',
-          accent: '#F5C6DF',
-          particleColor: '#FBE8F2'
+          hairLight: '#F3FCF8',
+          hairMid: '#B8E3D5',
+          hairShadow: '#7CC2AD',
+          dressLight: '#F4FCF8',
+          dressMid: '#CBECE1',
+          dressShadow: '#96D2C0',
+          rimLight: '#DCF5EC',
+          ambientGlow: 'rgba(184, 227, 213, 0.65)',
+          wingCream: '#FFFFF6',
+          wingTint: '#EFF9F5',
+          wingGlow: 'rgba(184, 227, 213, 0.6)',
+          blush: '#FFAEBE',
+          accent: '#B8E3D5',
+          particleColor: '#EFF9F5'
         };
-      case 'cream':
+      case 'night_blue':
+        // 5. Xanh đêm — #7183B8
         return {
-          name: 'Cream Fairy',
-          bodyHighlight: '#FFFFFF',
-          bodyLight: '#FFFDF0',
-          bodyMid: '#F8ECC2',
-          bodyShadow: '#DECB89',
-          bodyDark: '#AD9645',
-          hairHighlight: '#FFFFFF',
-          hairLight: '#FEF9E3',
-          hairMid: '#F5E4A7',
-          hairShadow: '#D2BD6F',
-          dressLight: '#FFFDF3',
-          dressMid: '#FBF0D0',
-          dressShadow: '#E3D299',
-          rimLight: '#FFF4C7',
-          ambientGlow: 'rgba(244, 238, 220, 0.65)',
-          wingCream: '#FFFFFF',
-          wingTint: '#FFFCEB',
-          wingGlow: 'rgba(245, 232, 175, 0.6)',
-          blush: '#FFBEA6',
-          accent: '#F4EEDC',
-          particleColor: '#FFFCEB'
+          name: 'Xanh đêm Fairy',
+          bodyHighlight: '#E4ECF8',
+          bodyLight: '#B5C4E3',
+          bodyMid: '#7183B8',
+          bodyShadow: '#4E5F94',
+          bodyDark: '#2E3B68',
+          hairHighlight: '#D8E2F5',
+          hairLight: '#98A9D4',
+          hairMid: '#7183B8',
+          hairShadow: '#46568A',
+          dressLight: '#9EAFD9',
+          dressMid: '#7183B8',
+          dressShadow: '#3F4F82',
+          rimLight: '#C2D1F0',
+          ambientGlow: 'rgba(113, 131, 184, 0.65)',
+          wingCream: '#F5F7FD',
+          wingTint: '#D4DEFA',
+          wingGlow: 'rgba(113, 131, 184, 0.55)',
+          blush: '#F472B6',
+          accent: '#7183B8',
+          particleColor: '#D4DEFA'
         };
-      case 'peach':
+      case 'pastel_peach':
+        // 6. Đào pastel — #F6C5B0
         return {
-          name: 'Peach Fairy',
+          name: 'Đào pastel Fairy',
           bodyHighlight: '#FFFFFF',
-          bodyLight: '#FFF4EE',
-          bodyMid: '#FDD5C2',
-          bodyShadow: '#F1A987',
-          bodyDark: '#C9744D',
+          bodyLight: '#FDF4EF',
+          bodyMid: '#F6C5B0',
+          bodyShadow: '#DE977B',
+          bodyDark: '#B86847',
           hairHighlight: '#FFFFFF',
-          hairLight: '#FFEFE5',
-          hairMid: '#FCC8B0',
-          hairShadow: '#E79670',
-          dressLight: '#FFF6F0',
-          dressMid: '#FEDDCD',
-          dressShadow: '#F3B497',
-          rimLight: '#FFE3D3',
-          ambientGlow: 'rgba(253, 190, 160, 0.6)',
-          wingCream: '#FFFFF7',
-          wingTint: '#FFF0E8',
-          wingGlow: 'rgba(253, 190, 160, 0.55)',
+          hairLight: '#FEF7F3',
+          hairMid: '#F6C5B0',
+          hairShadow: '#D88E6F',
+          dressLight: '#FEF6F2',
+          dressMid: '#FAD1C0',
+          dressShadow: '#DE977B',
+          rimLight: '#FDE5D8',
+          ambientGlow: 'rgba(246, 197, 176, 0.65)',
+          wingCream: '#FFFFFA',
+          wingTint: '#FDF3EE',
+          wingGlow: 'rgba(246, 197, 176, 0.58)',
           blush: '#FF9E88',
-          accent: '#FDD5C2',
-          particleColor: '#FFF0E8'
+          accent: '#F6C5B0',
+          particleColor: '#FDF3EE'
         };
-      case 'charcoal':
+      case 'cream_yellow':
+        // 7. Vàng kem — #F3DFA5
         return {
-          name: 'Charcoal Fairy',
-          bodyHighlight: '#F1F5F9',
-          bodyLight: '#CBD5E1',
-          bodyMid: '#64748B',
-          bodyShadow: '#334155',
-          bodyDark: '#1E293B',
-          hairHighlight: '#E2E8F0',
-          hairLight: '#94A3B8',
-          hairMid: '#475569',
-          hairShadow: '#1E293B',
-          dressLight: '#94A3B8',
-          dressMid: '#475569',
-          dressShadow: '#1E293B',
-          rimLight: '#CBD5E1',
-          ambientGlow: 'rgba(148, 163, 184, 0.45)',
-          wingCream: '#F8FAFC',
-          wingTint: '#E2E8F0',
-          wingGlow: 'rgba(148, 163, 184, 0.5)',
-          blush: '#F87171',
-          accent: '#64748B',
-          particleColor: '#E2E8F0'
-        };
-      case 'gray':
-      default:
-        return {
-          name: 'Neutral Fairy',
+          name: 'Vàng kem Fairy',
           bodyHighlight: '#FFFFFF',
-          bodyLight: '#F3F4F6',
-          bodyMid: '#D1D5DB',
-          bodyShadow: '#9CA3AF',
-          bodyDark: '#6B7280',
+          bodyLight: '#FEFBF0',
+          bodyMid: '#F3DFA5',
+          bodyShadow: '#DEBF68',
+          bodyDark: '#B89635',
           hairHighlight: '#FFFFFF',
-          hairLight: '#E5E7EB',
-          hairMid: '#9CA3AF',
-          hairShadow: '#6B7280',
-          dressLight: '#F9FAFB',
-          dressMid: '#E5E7EB',
-          dressShadow: '#9CA3AF',
-          rimLight: '#F3F4F6',
-          ambientGlow: 'rgba(209, 213, 219, 0.5)',
+          hairLight: '#FFFCF4',
+          hairMid: '#F3DFA5',
+          hairShadow: '#D6B45A',
+          dressLight: '#FFFDF6',
+          dressMid: '#F8E8BC',
+          dressShadow: '#DEC073',
+          rimLight: '#FDF0CB',
+          ambientGlow: 'rgba(243, 223, 165, 0.65)',
           wingCream: '#FFFFFF',
-          wingTint: '#F3F4F6',
-          wingGlow: 'rgba(229, 231, 235, 0.6)',
+          wingTint: '#FEFAF0',
+          wingGlow: 'rgba(243, 223, 165, 0.6)',
+          blush: '#FFBEA6',
+          accent: '#F3DFA5',
+          particleColor: '#FEFAF0'
+        };
+      case 'pearl_white':
+      default:
+        // 8. Trắng ngọc trai — #E9EDF5
+        return {
+          name: 'Trắng ngọc trai Fairy',
+          bodyHighlight: '#FFFFFF',
+          bodyLight: '#F6F8FC',
+          bodyMid: '#E9EDF5',
+          bodyShadow: '#B8C2D8',
+          bodyDark: '#828FA8',
+          hairHighlight: '#FFFFFF',
+          hairLight: '#FAFBFE',
+          hairMid: '#E9EDF5',
+          hairShadow: '#ADB7CF',
+          dressLight: '#FBFCFE',
+          dressMid: '#EFF2F8',
+          dressShadow: '#B8C2D8',
+          rimLight: '#F0F4FA',
+          ambientGlow: 'rgba(233, 237, 245, 0.65)',
+          wingCream: '#FFFFFF',
+          wingTint: '#F3F6FB',
+          wingGlow: 'rgba(233, 237, 245, 0.65)',
           blush: '#FCA5A5',
-          accent: '#9CA3AF',
-          particleColor: '#F3F4F6'
+          accent: '#E9EDF5',
+          particleColor: '#F3F6FB'
         };
     }
   };
@@ -738,80 +766,330 @@ export const SpiritAvatar: React.FC<SpiritAvatarProps> = ({
             <circle cx="120" cy="118" r="1.4" fill={theme.bodyDark} opacity="0.65" />
           )}
 
-          {/* 11. ACCESSORIES (NƠ, VÒNG HOA, KẸP TÓC, KÍNH) */}
-          {accessory === 'bow' && (
-            <g id="fairy-accessory-bow" className="filter drop-shadow(0 3px 6px rgba(0,0,0,0.35))">
-              {/* Cute Ribbon Bow on side hair */}
+          {/* 11. BỘ 16 PHỤ KIỆN FAIRYCORE (NƠ, KẸP BƯỚM, VÒNG HOA, KẸP DÂY LEO, MẶT TRĂNG, SAO, VƯƠNG MIỆN, TIARA, HALO, HOA LAVENDER, BƯỚM ĐẬU, NẤM, VÒNG LÁ, VỎ SÒ, NGỌC TRAI, KÍNH TRÒN) */}
+          
+          {/* 1. 🎀 Nơ ruy-băng */}
+          {(accessory === 'ribbon_bow' || accessory === 'bow') && (
+            <g id="fairy-acc-ribbon-bow" className="filter drop-shadow(0 3px 6px rgba(0,0,0,0.35))">
               <g transform="translate(82, 60) rotate(-18)">
-                {/* Left loop */}
-                <path d="M 0 0 C -14 -12 -18 6 0 0 Z" fill="#F472B6" stroke="#BE185D" strokeWidth="1" />
-                <path d="M -3 -3 C -9 -8 -11 3 -3 -1" fill="#FCE7F3" opacity="0.9" />
-                {/* Right loop */}
-                <path d="M 0 0 C 14 -12 18 6 0 0 Z" fill="#F472B6" stroke="#BE185D" strokeWidth="1" />
-                <path d="M 3 -3 C 9 -8 11 3 3 -1" fill="#FCE7F3" opacity="0.9" />
-                {/* Center knot */}
-                <circle cx="0" cy="0" r="3.8" fill="#DB2777" />
-                <circle cx="-1" cy="-1" r="1.4" fill="#FFFFFF" />
-                {/* Dangling ribbons */}
-                <path d="M -1 2 Q -5 12 -8 17 Q -3 14 0 7" fill="#F472B6" />
-                <path d="M 1 2 Q 5 12 8 17 Q 3 14 0 7" fill="#F472B6" />
+                <path d="M 0 0 C -15 -14 -20 6 0 0 Z" fill="#F472B6" stroke="#BE185D" strokeWidth="1.2" />
+                <path d="M -3 -3 C -10 -9 -12 3 -3 -1" fill="#FCE7F3" opacity="0.9" />
+                <path d="M 0 0 C 15 -14 20 6 0 0 Z" fill="#F472B6" stroke="#BE185D" strokeWidth="1.2" />
+                <path d="M 3 -3 C 10 -9 12 3 3 -1" fill="#FCE7F3" opacity="0.9" />
+                <circle cx="0" cy="0" r="4" fill="#DB2777" />
+                <circle cx="-1" cy="-1" r="1.5" fill="#FFFFFF" />
+                <path d="M -1 2 Q -6 13 -9 18 Q -4 15 0 7" fill="#F472B6" />
+                <path d="M 1 2 Q 6 13 9 18 Q 4 15 0 7" fill="#F472B6" />
               </g>
             </g>
           )}
 
-          {accessory === 'wreath' && (
-            <g id="fairy-accessory-wreath" className="filter drop-shadow(0 3px 6px rgba(0,0,0,0.35))">
-              {/* Delicate Flower Wreath Resting on Crown */}
-              <path
-                d="M 84 56 Q 120 42 156 56"
-                stroke="#10B981"
-                strokeWidth="2.8"
-                strokeLinecap="round"
-                fill="none"
-              />
-              {/* Mini leaves */}
-              <ellipse cx="94" cy="51" rx="3.5" ry="2" fill="#34D399" transform="rotate(-25 94 51)" />
-              <ellipse cx="146" cy="51" rx="3.5" ry="2" fill="#34D399" transform="rotate(25 146 51)" />
-              <ellipse cx="120" cy="45" rx="3.5" ry="2" fill="#6EE7B7" />
-
-              {/* Blooming Flower 1 - Left Pink */}
-              <circle cx="92" cy="55" r="4.2" fill="#F472B6" />
-              <circle cx="92" cy="55" r="1.5" fill="#FEF08A" />
-
-              {/* Blooming Flower 2 - Center White Rose */}
-              <circle cx="110" cy="46" r="4.8" fill="#FFFFFF" />
-              <circle cx="110" cy="46" r="1.8" fill="#FBBF24" />
-
-              {/* Blooming Flower 3 - Lavender */}
-              <circle cx="130" cy="47" r="4.5" fill="#C084FC" />
-              <circle cx="130" cy="47" r="1.6" fill="#FEF08A" />
-
-              {/* Blooming Flower 4 - Soft Peach */}
-              <circle cx="148" cy="55" r="4.2" fill="#FB923C" />
-              <circle cx="148" cy="55" r="1.5" fill="#FEF08A" />
+          {/* 2. 🦋 Kẹp tóc bướm */}
+          {accessory === 'butterfly_clip' && (
+            <g id="fairy-acc-butterfly-clip" className="filter drop-shadow(0 3px 6px rgba(0,0,0,0.35))">
+              <g transform="translate(84, 66) rotate(-15)">
+                {/* Hairpin silver needle */}
+                <line x1="-8" y1="5" x2="10" y2="-4" stroke="#CBD5E1" strokeWidth="1.8" strokeLinecap="round" />
+                {/* Forewing Top Left */}
+                <path d="M 0 0 C -6 -12 -16 -12 -14 -3 C -13 3 -4 2 0 0 Z" fill="#67E8F9" stroke="#0891B2" strokeWidth="0.8" opacity="0.9" />
+                <circle cx="-10" cy="-6" r="1.5" fill="#FFFFFF" />
+                {/* Hindwing Bottom Left */}
+                <path d="M 0 0 C -5 5 -12 8 -9 12 C -6 14 -1 6 0 0 Z" fill="#A5B4FC" stroke="#4F46E5" strokeWidth="0.8" opacity="0.85" />
+                {/* Forewing Top Right */}
+                <path d="M 0 0 C 6 -13 16 -13 14 -4 C 13 2 4 2 0 0 Z" fill="#67E8F9" stroke="#0891B2" strokeWidth="0.8" opacity="0.9" />
+                <circle cx="10" cy="-6" r="1.5" fill="#FFFFFF" />
+                {/* Hindwing Bottom Right */}
+                <path d="M 0 0 C 5 5 12 8 9 12 C 6 14 1 6 0 0 Z" fill="#A5B4FC" stroke="#4F46E5" strokeWidth="0.8" opacity="0.85" />
+                {/* Butterfly Body */}
+                <ellipse cx="0" cy="1" rx="1.6" ry="5.5" fill="#1E293B" />
+                {/* Antennae */}
+                <path d="M -0.5 -4 Q -3 -8 -6 -7" stroke="#0891B2" strokeWidth="0.8" fill="none" />
+                <path d="M 0.5 -4 Q 3 -8 6 -7" stroke="#0891B2" strokeWidth="0.8" fill="none" />
+                <circle cx="-6" cy="-7" r="0.8" fill="#FDF2F8" />
+                <circle cx="6" cy="-7" r="0.8" fill="#FDF2F8" />
+              </g>
             </g>
           )}
 
-          {accessory === 'hairpin' && (
-            <g id="fairy-accessory-hairpin" className="filter drop-shadow(0 3px 8px rgba(0,0,0,0.4))">
-              {/* Starlet Hairpin on side-swept hair */}
-              <g transform="translate(86, 70)">
+          {/* 3. 🌸 Vòng hoa nhỏ */}
+          {(accessory === 'small_wreath' || accessory === 'wreath') && (
+            <g id="fairy-acc-small-wreath" className="filter drop-shadow(0 3px 6px rgba(0,0,0,0.35))">
+              <path d="M 86 56 Q 120 44 154 56" stroke="#10B981" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+              {/* Leaves */}
+              <ellipse cx="96" cy="51" rx="3.5" ry="1.8" fill="#34D399" transform="rotate(-20 96 51)" />
+              <ellipse cx="144" cy="51" rx="3.5" ry="1.8" fill="#34D399" transform="rotate(20 144 51)" />
+              <ellipse cx="120" cy="46" rx="3" ry="1.8" fill="#6EE7B7" />
+              {/* Tiny Pastel Blossoms */}
+              <circle cx="92" cy="55" r="3.8" fill="#F472B6" />
+              <circle cx="92" cy="55" r="1.3" fill="#FEF08A" />
+              <circle cx="108" cy="47" r="4.2" fill="#FFFFFF" />
+              <circle cx="108" cy="47" r="1.5" fill="#FBBF24" />
+              <circle cx="128" cy="47" r="4" fill="#C084FC" />
+              <circle cx="128" cy="47" r="1.4" fill="#FEF08A" />
+              <circle cx="146" cy="54" r="3.8" fill="#FDBA74" />
+              <circle cx="146" cy="54" r="1.3" fill="#FEF08A" />
+            </g>
+          )}
+
+          {/* 4. 🌿 Kẹp lá dây leo */}
+          {accessory === 'vine_clip' && (
+            <g id="fairy-acc-vine-clip" className="filter drop-shadow(0 3px 6px rgba(0,0,0,0.35))">
+              {/* Winding emerald fairy vine */}
+              <path d="M 80 58 Q 76 68 82 76 Q 88 84 84 92" stroke="#059669" strokeWidth="2" strokeLinecap="round" fill="none" />
+              {/* Little vine tendril curls */}
+              <path d="M 83 74 Q 89 74 88 78" stroke="#10B981" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+              {/* Leaves along vine */}
+              <path d="M 78 60 Q 72 61 74 66 Q 78 64 78 60 Z" fill="#34D399" stroke="#047857" strokeWidth="0.6" />
+              <path d="M 80 70 Q 86 68 85 73 Q 81 74 80 70 Z" fill="#6EE7B7" stroke="#047857" strokeWidth="0.6" />
+              <path d="M 83 82 Q 89 83 87 88 Q 82 86 83 82 Z" fill="#34D399" stroke="#047857" strokeWidth="0.6" />
+              <path d="M 84 90 Q 80 94 82 96 Q 85 93 84 90 Z" fill="#A7F3D0" stroke="#047857" strokeWidth="0.6" />
+              {/* Shimmering dew drops */}
+              <circle cx="75" cy="63" r="1.2" fill="#FFFFFF" opacity="0.9" />
+              <circle cx="86" cy="71" r="1.2" fill="#FFFFFF" opacity="0.9" />
+            </g>
+          )}
+
+          {/* 5. 🌙 Kẹp mặt trăng */}
+          {accessory === 'moon_clip' && (
+            <g id="fairy-acc-moon-clip" className="filter drop-shadow(0 3px 8px rgba(245,158,11,0.45))">
+              <g transform="translate(84, 66) rotate(-12)">
+                {/* Hairpin gold pin */}
+                <line x1="-8" y1="4" x2="12" y2="-4" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round" />
+                {/* Luminous Golden Crescent */}
+                <path d="M 0 -10 C 6 -10 10 -4 10 2 C 10 8 5 13 0 13 C 5 10 7 5 6 0 C 5 -5 2 -8 0 -10 Z" fill="#FDE047" stroke="#D97706" strokeWidth="0.9" />
+                {/* Inner crescent highlight */}
+                <path d="M 2 -7 C 6 -4 6 2 4 6" stroke="#FFFFFF" strokeWidth="1" strokeLinecap="round" fill="none" opacity="0.9" />
+                {/* Dangling starlet teardrop */}
+                <line x1="3" y1="12" x2="4" y2="18" stroke="#FBBF24" strokeWidth="0.8" />
+                <circle cx="4" cy="19" r="2.2" fill="#93C5FD" stroke="#3B82F6" strokeWidth="0.6" />
+                <circle cx="3.5" cy="18.5" r="0.7" fill="#FFFFFF" />
+              </g>
+            </g>
+          )}
+
+          {/* 6. ⭐ Kẹp ngôi sao */}
+          {(accessory === 'star_clip' || accessory === 'hairpin') && (
+            <g id="fairy-acc-star-clip" className="filter drop-shadow(0 3px 8px rgba(245,158,11,0.5))">
+              <g transform="translate(85, 68)">
                 <line x1="-10" y1="4" x2="12" y2="-5" stroke="#F59E0B" strokeWidth="2.2" strokeLinecap="round" />
-                {/* Glowing 4-point starlet */}
-                <circle cx="0" cy="0" r="7" fill="#FDE047" opacity="0.4" />
+                {/* Glowing 5-point star */}
+                <circle cx="0" cy="0" r="7.5" fill="#FDE047" opacity="0.4" />
                 <path
-                  d="M 0 -8 Q 1.5 -1.5 8 0 Q 1.5 1.5 0 8 Q -1.5 1.5 -8 0 Q -1.5 -1.5 0 -8 Z"
+                  d="M 0 -9 L 2.5 -3 L 8.5 -2.5 L 4 2 L 5.5 8 L 0 5 L -5.5 8 L -4 2 L -8.5 -2.5 L -2.5 -3 Z"
                   fill="#FEF08A"
                   stroke="#D97706"
                   strokeWidth="0.9"
                 />
-                <circle cx="0" cy="0" r="2.2" fill="#FFFFFF" />
+                <circle cx="0" cy="0" r="2.5" fill="#FFFFFF" />
+                <circle cx="-0.8" cy="-0.8" r="1" fill="#FEF08A" />
               </g>
             </g>
           )}
 
+          {/* 7. 👑 Vương miện hoa */}
+          {accessory === 'flower_crown' && (
+            <g id="fairy-acc-flower-crown" className="filter drop-shadow(0 4px 8px rgba(0,0,0,0.4))">
+              {/* Crown Woven Base */}
+              <path d="M 80 54 Q 120 38 160 54" stroke="#059669" strokeWidth="3" strokeLinecap="round" fill="none" />
+              {/* Foliage leaves */}
+              <ellipse cx="90" cy="48" rx="4" ry="2" fill="#10B981" transform="rotate(-30 90 48)" />
+              <ellipse cx="150" cy="48" rx="4" ry="2" fill="#10B981" transform="rotate(30 150 48)" />
+              <ellipse cx="106" cy="41" rx="4" ry="2.2" fill="#34D399" transform="rotate(-15 106 41)" />
+              <ellipse cx="134" cy="41" rx="4" ry="2.2" fill="#34D399" transform="rotate(15 134 41)" />
+              {/* Royal Crown Flowers */}
+              {/* Center Royal Rose */}
+              <circle cx="120" cy="38" r="6" fill="#F43F5E" stroke="#BE123C" strokeWidth="1" />
+              <circle cx="120" cy="38" r="3.2" fill="#FB7185" />
+              <circle cx="120" cy="38" r="1.5" fill="#FFFFFF" />
+              {/* Flanking Peony Left */}
+              <circle cx="102" cy="44" r="5" fill="#EC4899" stroke="#BE185D" strokeWidth="0.8" />
+              <circle cx="102" cy="44" r="2.2" fill="#FDF2F8" />
+              {/* Flanking Lily Right */}
+              <circle cx="138" cy="44" r="5" fill="#A855F7" stroke="#7E22CE" strokeWidth="0.8" />
+              <circle cx="138" cy="44" r="2.2" fill="#FAF5FF" />
+              {/* Outer Golden Buttercups */}
+              <circle cx="86" cy="52" r="4.2" fill="#FBBF24" stroke="#D97706" strokeWidth="0.8" />
+              <circle cx="154" cy="52" r="4.2" fill="#FBBF24" stroke="#D97706" strokeWidth="0.8" />
+            </g>
+          )}
+
+          {/* 8. 💎 Tiara pha lê */}
+          {accessory === 'crystal_tiara' && (
+            <g id="fairy-acc-crystal-tiara" className="filter drop-shadow(0 4px 10px rgba(167,139,250,0.5))">
+              <g transform="translate(120, 48)">
+                {/* Silver Tiara Base Arch */}
+                <path d="M -34 6 Q 0 -4 34 6" stroke="#E2E8F0" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+                <path d="M -30 6 Q 0 -2 30 6" stroke="#94A3B8" strokeWidth="0.8" fill="none" />
+                {/* Center Majestic Crystal Peak */}
+                <path d="M 0 -16 L 4 -3 L 0 2 L -4 -3 Z" fill="#E0E7FF" stroke="#6366F1" strokeWidth="1" />
+                <circle cx="0" cy="-6" r="2" fill="#C7D2FE" />
+                <circle cx="-0.8" cy="-8" r="0.8" fill="#FFFFFF" />
+                {/* Mid Left Crystal Peak */}
+                <path d="M -14 -11 L -11 -2 L -14 3 L -17 -2 Z" fill="#DDD6FE" stroke="#7C3AED" strokeWidth="0.9" />
+                {/* Mid Right Crystal Peak */}
+                <path d="M 14 -11 L 17 -2 L 14 3 L 11 -2 Z" fill="#DDD6FE" stroke="#7C3AED" strokeWidth="0.9" />
+                {/* Outer Crystal Peaks */}
+                <path d="M -26 -6 L -24 1 L -26 5 L -28 1 Z" fill="#BAE6FD" stroke="#0284C7" strokeWidth="0.8" />
+                <path d="M 26 -6 L 28 1 L 26 5 L 24 1 Z" fill="#BAE6FD" stroke="#0284C7" strokeWidth="0.8" />
+                {/* Tiny Facet Glints */}
+                <circle cx="0" cy="-16" r="1.5" fill="#FFFFFF" />
+                <circle cx="-14" cy="-11" r="1.2" fill="#FFFFFF" />
+                <circle cx="14" cy="-11" r="1.2" fill="#FFFFFF" />
+              </g>
+            </g>
+          )}
+
+          {/* 9. ✨ Halo ánh sáng */}
+          {accessory === 'light_halo' && (
+            <g id="fairy-acc-light-halo" className="filter drop-shadow(0 0 12px rgba(253,224,71,0.85))">
+              {/* Outer Golden Halo Glow */}
+              <ellipse cx="120" cy="35" rx="35" ry="9" stroke="rgba(253, 224, 71, 0.4)" strokeWidth="6" fill="none" />
+              {/* Core Halo Ring */}
+              <ellipse cx="120" cy="35" rx="34" ry="8.5" stroke="#FEF08A" strokeWidth="2.5" fill="none" />
+              {/* Top Bright Rim Highlight */}
+              <path d="M 94 34 Q 120 28 146 34" stroke="#FFFFFF" strokeWidth="1.6" fill="none" opacity="0.95" />
+              {/* Floating Sparkle Glints */}
+              <circle cx="86" cy="34" r="1.8" fill="#FFFFFF" />
+              <circle cx="154" cy="34" r="1.8" fill="#FFFFFF" />
+              <path d="M 120 22 L 122 25 L 125 25 L 123 27 L 124 30 L 120 28 L 116 30 L 117 27 L 115 25 L 118 25 Z" fill="#FFFFFF" opacity="0.9" />
+            </g>
+          )}
+
+          {/* 10. 🌿 Hoa lavender cài tóc */}
+          {accessory === 'lavender_flower' && (
+            <g id="fairy-acc-lavender-flower" className="filter drop-shadow(0 3px 6px rgba(0,0,0,0.35))">
+              <g transform="translate(84, 68) rotate(-20)">
+                {/* Slender green stem */}
+                <line x1="-6" y1="18" x2="4" y2="-12" stroke="#4D7C0F" strokeWidth="1.8" strokeLinecap="round" />
+                <line x1="-3" y1="12" x2="-8" y2="7" stroke="#65A30D" strokeWidth="1.2" strokeLinecap="round" />
+                <line x1="0" y1="4" x2="6" y2="0" stroke="#65A30D" strokeWidth="1.2" strokeLinecap="round" />
+                {/* Clustered Lavender Florets */}
+                <ellipse cx="4" cy="-12" rx="2.5" ry="3.5" fill="#A855F7" />
+                <ellipse cx="1" cy="-8" rx="2.8" ry="3.2" fill="#C084FC" />
+                <ellipse cx="6" cy="-6" rx="2.8" ry="3.2" fill="#9333EA" />
+                <ellipse cx="0" cy="-2" rx="3" ry="3.5" fill="#A855F7" />
+                <ellipse cx="5" cy="1" rx="3" ry="3.5" fill="#C084FC" />
+                <ellipse cx="-1" cy="5" rx="2.8" ry="3.2" fill="#9333EA" />
+                <ellipse cx="4" cy="7" rx="2.8" ry="3.2" fill="#A855F7" />
+                {/* Soft Lavender Blossom Highlight */}
+                <circle cx="4" cy="-13" r="1" fill="#FFFFFF" opacity="0.8" />
+                <circle cx="1" cy="-9" r="0.9" fill="#FFFFFF" opacity="0.8" />
+              </g>
+            </g>
+          )}
+
+          {/* 11. 🦋 Bướm đậu trên tóc */}
+          {accessory === 'butterfly_perch' && (
+            <g id="fairy-acc-butterfly-perch" className="filter drop-shadow(0 4px 8px rgba(0,0,0,0.4))">
+              <g transform="translate(126, 46)">
+                {/* Left Fantasy Wing Upright */}
+                <path d="M 0 0 C -8 -16 -22 -14 -18 -2 C -15 6 -3 4 0 0 Z" fill="#F472B6" stroke="#DB2777" strokeWidth="1" />
+                <circle cx="-12" cy="-8" r="1.8" fill="#FDF2F8" />
+                <circle cx="-6" cy="-3" r="1.2" fill="#FEF08A" />
+                {/* Right Fantasy Wing Upright */}
+                <path d="M 0 0 C 8 -16 22 -14 18 -2 C 15 6 3 4 0 0 Z" fill="#C084FC" stroke="#9333EA" strokeWidth="1" />
+                <circle cx="12" cy="-8" r="1.8" fill="#FAF5FF" />
+                <circle cx="6" cy="-3" r="1.2" fill="#FEF08A" />
+                {/* Butterfly Body resting gently */}
+                <ellipse cx="0" cy="1" rx="1.8" ry="6" fill="#312E81" />
+                <circle cx="0" cy="-5" r="2" fill="#1E1B4B" />
+                {/* Antennae */}
+                <path d="M -0.5 -6 Q -4 -11 -7 -10" stroke="#C084FC" strokeWidth="0.9" fill="none" />
+                <path d="M 0.5 -6 Q 4 -11 7 -10" stroke="#F472B6" strokeWidth="0.9" fill="none" />
+                <circle cx="-7" cy="-10" r="0.9" fill="#FFFFFF" />
+                <circle cx="7" cy="-10" r="0.9" fill="#FFFFFF" />
+              </g>
+            </g>
+          )}
+
+          {/* 12. 🍄 Kẹp nấm nhỏ */}
+          {accessory === 'mushroom_clip' && (
+            <g id="fairy-acc-mushroom-clip" className="filter drop-shadow(0 3px 6px rgba(0,0,0,0.35))">
+              <g transform="translate(82, 68)">
+                {/* Hairpin needle */}
+                <line x1="-6" y1="6" x2="10" y2="-4" stroke="#94A3B8" strokeWidth="1.8" strokeLinecap="round" />
+                {/* Mushroom Cream Stem */}
+                <path d="M -2 1 C -3 5 -4 9 0 10 C 4 9 3 5 2 1 Z" fill="#FEF3C7" stroke="#D97706" strokeWidth="0.7" />
+                {/* Crimson Coral Mushroom Cap */}
+                <path d="M -8 1 C -8 -7 8 -7 8 1 C 5 2 -5 2 -8 1 Z" fill="#EF4444" stroke="#B91C1C" strokeWidth="0.9" />
+                {/* White Fairy Spots */}
+                <circle cx="-4" cy="-2.5" r="1.3" fill="#FFFFFF" />
+                <circle cx="0" cy="-4.5" r="1.5" fill="#FFFFFF" />
+                <circle cx="4" cy="-2" r="1.2" fill="#FFFFFF" />
+                {/* Tiny Spore Sparkles */}
+                <circle cx="-6" cy="-7" r="0.8" fill="#FEF08A" />
+                <circle cx="6" cy="-6" r="0.7" fill="#FEF08A" />
+              </g>
+            </g>
+          )}
+
+          {/* 13. 🌿 Vòng lá */}
+          {accessory === 'leaf_wreath' && (
+            <g id="fairy-acc-leaf-wreath" className="filter drop-shadow(0 3px 6px rgba(0,0,0,0.35))">
+              {/* Headband arch */}
+              <path d="M 84 54 Q 120 42 156 54" stroke="#059669" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+              {/* Alternating Mint and Forest Laurel Leaves */}
+              <ellipse cx="90" cy="51" rx="4" ry="1.8" fill="#34D399" stroke="#047857" strokeWidth="0.6" transform="rotate(-35 90 51)" />
+              <ellipse cx="102" cy="46" rx="4" ry="1.8" fill="#6EE7B7" stroke="#047857" strokeWidth="0.6" transform="rotate(-20 102 46)" />
+              <ellipse cx="114" cy="44" rx="4" ry="1.8" fill="#34D399" stroke="#047857" strokeWidth="0.6" transform="rotate(-5 114 44)" />
+              <ellipse cx="126" cy="44" rx="4" ry="1.8" fill="#6EE7B7" stroke="#047857" strokeWidth="0.6" transform="rotate(5 126 44)" />
+              <ellipse cx="138" cy="46" rx="4" ry="1.8" fill="#34D399" stroke="#047857" strokeWidth="0.6" transform="rotate(20 138 46)" />
+              <ellipse cx="150" cy="51" rx="4" ry="1.8" fill="#6EE7B7" stroke="#047857" strokeWidth="0.6" transform="rotate(35 150 51)" />
+              {/* Golden Leaf Buds */}
+              <circle cx="96" cy="48" r="1.3" fill="#FBBF24" />
+              <circle cx="120" cy="43" r="1.5" fill="#FBBF24" />
+              <circle cx="144" cy="48" r="1.3" fill="#FBBF24" />
+            </g>
+          )}
+
+          {/* 14. 🐚 Kẹp vỏ sò */}
+          {accessory === 'seashell_clip' && (
+            <g id="fairy-acc-seashell-clip" className="filter drop-shadow(0 3px 6px rgba(0,0,0,0.35))">
+              <g transform="translate(84, 68)">
+                {/* Hairpin silver needle */}
+                <line x1="-7" y1="5" x2="11" y2="-4" stroke="#CBD5E1" strokeWidth="1.8" strokeLinecap="round" />
+                {/* Scallop Fan Base */}
+                <path d="M -7 0 C -9 -8 0 -13 0 -13 C 0 -13 9 -8 7 0 C 4 2 -4 2 -7 0 Z" fill="#FBCFE8" stroke="#DB2777" strokeWidth="0.9" />
+                {/* Scallop Fluted Ridges */}
+                <line x1="0" y1="1" x2="0" y2="-12" stroke="#F472B6" strokeWidth="0.8" />
+                <line x1="-1" y1="1" x2="-5" y2="-9" stroke="#F472B6" strokeWidth="0.7" />
+                <line x1="1" y1="1" x2="5" y2="-9" stroke="#F472B6" strokeWidth="0.7" />
+                {/* Mother of pearl lustre */}
+                <ellipse cx="-2" cy="-6" rx="1.8" ry="3" fill="#FFFFFF" opacity="0.6" transform="rotate(-15 -2 -6)" />
+                {/* Center Glowing White Pearl */}
+                <circle cx="0" cy="0" r="2.8" fill="#FFFFFF" stroke="#E2E8F0" strokeWidth="0.7" />
+                <circle cx="-0.8" cy="-0.8" r="1" fill="#FEF3C7" />
+              </g>
+            </g>
+          )}
+
+          {/* 15. 🤍 Ngọc trai quanh tóc */}
+          {accessory === 'pearls' && (
+            <g id="fairy-acc-pearls" className="filter drop-shadow(0 3px 8px rgba(255,255,255,0.45))">
+              {/* Pearl Strand Curving Hairline */}
+              <path d="M 86 58 Q 120 48 154 58" stroke="#E2E8F0" strokeWidth="1" fill="none" opacity="0.6" />
+              {/* Graduated Pearls */}
+              <circle cx="86" cy="58" r="2.4" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="0.6" />
+              <circle cx="94" cy="55" r="2.8" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="0.6" />
+              <circle cx="102" cy="52" r="3.2" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="0.6" />
+              <circle cx="111" cy="50" r="3.5" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="0.6" />
+              <circle cx="120" cy="49" r="3.8" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="0.6" />
+              <circle cx="129" cy="50" r="3.5" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="0.6" />
+              <circle cx="138" cy="52" r="3.2" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="0.6" />
+              <circle cx="146" cy="55" r="2.8" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="0.6" />
+              <circle cx="154" cy="58" r="2.4" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="0.6" />
+              {/* Pearlescent Highlights */}
+              <circle cx="119" cy="48" r="1.2" fill="#FEF9C3" />
+              <circle cx="110" cy="49" r="1" fill="#FEF9C3" />
+              <circle cx="128" cy="49" r="1" fill="#FEF9C3" />
+              <circle cx="101" cy="51" r="0.9" fill="#FEF9C3" />
+              <circle cx="137" cy="51" r="0.9" fill="#FEF9C3" />
+            </g>
+          )}
+
+          {/* 16. 👓 Kính tròn */}
           {accessory === 'glasses' && (
-            <g id="fairy-accessory-glasses" className="filter drop-shadow(0 2px 4px rgba(0,0,0,0.3))">
+            <g id="fairy-acc-glasses" className="filter drop-shadow(0 2px 4px rgba(0,0,0,0.3))">
               {/* Thin Golden Round Spectacles */}
               {/* Left Lens */}
               <circle cx="102" cy="106" r="10.5" stroke="#FBBF24" strokeWidth="2" fill="rgba(255, 255, 255, 0.14)" />
