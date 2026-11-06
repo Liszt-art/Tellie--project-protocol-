@@ -12,9 +12,12 @@ import {
   BurnedPaper,
   GrowthStage,
   ActiveTab,
-  ActiveModal
+  ActiveModal,
+  KintsugiItem,
+  KintsugiObjectType
 } from '../types';
 import { INITIAL_POSTS, INITIAL_MOOD_HISTORY, INITIAL_GARDEN_PLANTS } from '../data/initialData';
+import { INITIAL_KINTSUGI_ITEMS } from '../data/kintsugi';
 import { sound } from '../utils/audio';
 
 interface AppContextType {
@@ -49,6 +52,20 @@ interface AppContextType {
   }) => void;
   toggleReaction: (postId: string, reactionType?: 'hug' | 'listen' | 'relate') => void;
   addComment: (postId: string, content: string) => void;
+
+  // Kintsugi Museum (Bảo tàng hàn gắn)
+  kintsugiItems: KintsugiItem[];
+  addKintsugiItem: (params: {
+    objectType: KintsugiObjectType;
+    objectNameVi: string;
+    customName?: string;
+    moodId: MoodId;
+    moodLabelVi: string;
+    originalText: string;
+    repairProgress?: number;
+    category?: string;
+  }) => KintsugiItem;
+  renameKintsugiItem: (id: string, newName: string) => void;
 
   // Garden
   gardenPlants: GardenPlant[];
@@ -88,6 +105,7 @@ const STORAGE_KEYS = {
   POSTS: 'tellie_posts_v1',
   GARDEN_PLANTS: 'tellie_garden_plants_v1',
   BURNED_PAPERS: 'tellie_burned_papers_v1',
+  KINTSUGI_ITEMS: 'tellie_kintsugi_items_v1',
   USER_NICKNAME: 'tellie_nickname_v1',
   ONBOARDING_COMPLETED: 'tellie_onboarding_completed_v1'
 };
@@ -188,6 +206,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   });
 
+  // 5b. Kintsugi Museum Items (Bảo tàng hàn gắn)
+  const [kintsugiItems, setKintsugiItems] = useState<KintsugiItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.KINTSUGI_ITEMS);
+      return saved ? JSON.parse(saved) : INITIAL_KINTSUGI_ITEMS;
+    } catch {
+      return INITIAL_KINTSUGI_ITEMS;
+    }
+  });
+
   // 6. User nickname
   const [userNickname, setUserNicknameState] = useState<string>(() => {
     try {
@@ -226,6 +254,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.BURNED_PAPERS, JSON.stringify(burnedPapers));
   }, [burnedPapers]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.KINTSUGI_ITEMS, JSON.stringify(kintsugiItems));
+  }, [kintsugiItems]);
 
   const setUserNickname = (name: string) => {
     setUserNicknameState(name);
@@ -548,6 +580,51 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     sound.playChime(760);
   };
 
+  // Kintsugi Museum methods
+  const addKintsugiItem = (params: {
+    objectType: KintsugiObjectType;
+    objectNameVi: string;
+    customName?: string;
+    moodId: MoodId;
+    moodLabelVi: string;
+    originalText: string;
+    repairProgress?: number;
+    category?: string;
+  }): KintsugiItem => {
+    const now = new Date();
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const dateFormatted = `${pad(now.getDate())}/${pad(now.getMonth() + 1)} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    
+    const defaultPlaceholder = `${params.objectNameVi} • ${pad(now.getDate())}/${pad(now.getMonth() + 1)}`;
+    const finalCustomName = params.customName?.trim() || defaultPlaceholder;
+
+    const newItem: KintsugiItem = {
+      id: `kint-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      objectType: params.objectType,
+      objectNameVi: params.objectNameVi,
+      customName: finalCustomName,
+      moodId: params.moodId,
+      moodLabelVi: params.moodLabelVi,
+      timestamp: now.toISOString(),
+      dateFormatted,
+      originalText: params.originalText,
+      repairProgress: params.repairProgress !== undefined ? params.repairProgress : 100,
+      category: params.category
+    };
+
+    setKintsugiItems(prev => [newItem, ...prev]);
+    sound.playChime(880);
+    return newItem;
+  };
+
+  const renameKintsugiItem = (id: string, newName: string) => {
+    if (!newName.trim()) return;
+    setKintsugiItems(prev =>
+      prev.map(item => (item.id === id ? { ...item, customName: newName.trim() } : item))
+    );
+    sound.playChime(640);
+  };
+
   // Pressure furnace
   const burnPaper = (content: string, title?: string, keepPrivate = false) => {
     sound.playBurnSound();
@@ -572,6 +649,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPosts(INITIAL_POSTS);
     setGardenPlants(INITIAL_GARDEN_PLANTS);
     setBurnedPapers([]);
+    setKintsugiItems(INITIAL_KINTSUGI_ITEMS);
     setUserNickname('Bạn Ẩn Danh #68');
     sound.playChime(440);
   };
@@ -596,6 +674,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         createPost,
         toggleReaction,
         addComment,
+        kintsugiItems,
+        addKintsugiItem,
+        renameKintsugiItem,
         gardenPlants,
         plantMemory,
         nurturePlant,

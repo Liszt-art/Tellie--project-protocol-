@@ -3,7 +3,6 @@ import {
   MessageSquare,
   Users,
   UserCheck,
-  Sprout,
   Heart,
   MessageCircle,
   Sparkles,
@@ -22,12 +21,11 @@ import { useApp } from '../context/AppContext';
 import { Post, Comment } from '../types';
 import { getMoodById } from '../data/moods';
 import { AnonymousBadge } from './AnonymousBadge';
-import { TellieGardenView } from './TellieGardenView';
 import { sound } from '../utils/audio';
 import { speechService } from '../utils/speech';
 
 interface CommunityViewProps {
-  initialSubTab?: 'feed' | 'circle' | 'mate' | 'garden';
+  initialSubTab?: 'feed' | 'circle' | 'mate';
 }
 
 export const CommunityView: React.FC<CommunityViewProps> = ({ initialSubTab = 'feed' }) => {
@@ -40,7 +38,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ initialSubTab = 'f
     openModal
   } = useApp();
 
-  const [activeSubTab, setActiveSubTab] = useState<'feed' | 'circle' | 'mate' | 'garden'>(initialSubTab);
+  const [activeSubTab, setActiveSubTab] = useState<'feed' | 'circle' | 'mate'>(initialSubTab);
 
   // Sync if initialSubTab prop changes
   useEffect(() => {
@@ -206,13 +204,12 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ initialSubTab = 'f
 
   return (
     <div className="space-y-6 text-left pb-16 animate-fade-in">
-      {/* 4 SUB-TABS SEGMENTED NAVIGATOR */}
+      {/* 3 SUB-TABS SEGMENTED NAVIGATOR */}
       <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#0F1326] border border-white/10 overflow-x-auto no-scrollbar shadow-lg">
         {[
           { id: 'feed', label: 'Bảng Tâm Sự', icon: MessageSquare },
           { id: 'circle', label: 'Tellie Circle', icon: Users },
-          { id: 'mate', label: 'Tellie Mate', icon: UserCheck },
-          { id: 'garden', label: 'Tellie Garden', icon: Sprout }
+          { id: 'mate', label: 'Tellie Mate', icon: UserCheck }
         ].map(tab => {
           const Icon = tab.icon;
           const isActive = activeSubTab === tab.id;
@@ -294,7 +291,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ initialSubTab = 'f
               </div>
               <h4 className="text-sm font-bold text-[#F5F2FA]">Chưa có bài viết nào</h4>
               <p className="text-xs text-[#E2E8F0]">
-                Hãy là người đầu tiên gieo mầm tâm sự trong tab Nhật Ký nhé.
+                Hãy là người đầu tiên chia sẻ tâm sự trong tab Nhật Ký để nhận được sự lắng nghe ấm áp nhé.
               </p>
             </div>
           ) : (
@@ -875,15 +872,6 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ initialSubTab = 'f
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {/* =========================================================================
-          SUB-TAB 4: TELLIE GARDEN (SEAMLESSLY LINKED FROM TAB 2)
-      ========================================================================= */}
-      {activeSubTab === 'garden' && (
-        <div className="animate-fade-in">
-          <TellieGardenView />
         </div>
       )}
     </div>

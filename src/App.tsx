@@ -38,8 +38,8 @@ function AppContent() {
   // Full-Screen Profile View State (Triggered by Top Right Avatar)
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // Tab 4 Community sub-tab controller (e.g. for garden redirection from Tab 2)
-  const [communitySubTab, setCommunitySubTab] = useState<'feed' | 'circle' | 'mate' | 'garden'>('feed');
+  // Tab 4 Community sub-tab controller
+  const [communitySubTab, setCommunitySubTab] = useState<'feed' | 'circle' | 'mate'>('feed');
 
   const currentSpiritId = userSpirit ? userSpirit.spiritId : 'fairy';
   const spiritName = userSpirit?.customName || 'Tellie Spirit';
@@ -48,13 +48,6 @@ function AppContent() {
     sound.playChime(500);
     setIsProfileOpen(false);
     setActiveTab(tab as any);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleRedirectToGarden = () => {
-    setCommunitySubTab('garden');
-    setActiveTab('community' as any);
-    setIsProfileOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -144,14 +137,13 @@ function AppContent() {
           /* Otherwise render only the active tab */
           <>
             {(activeTab === 'home' || !activeTab) && <HomeView />}
-            {activeTab === 'journal' && <JournalView onRedirectToGarden={handleRedirectToGarden} />}
+            {activeTab === 'journal' && <JournalView onOpenProfile={() => setIsProfileOpen(true)} />}
             {activeTab === 'zen' && <ZenView />}
             {activeTab === 'community' && <CommunityView initialSubTab={communitySubTab} />}
 
             {/* Backwards compatibility for legacy tabs */}
             {activeTab === 'listen' && <CommunityView initialSubTab="feed" />}
             {activeTab === 'connect' && <CommunityView initialSubTab="circle" />}
-            {activeTab === 'garden' && <CommunityView initialSubTab="garden" />}
             {activeTab === 'profile' && <ProfileView onClose={() => setActiveTab('home')} />}
           </>
         )}

@@ -12,6 +12,8 @@ import { useApp } from '../context/AppContext';
 import { SpiritAvatar } from './SpiritAvatar';
 import { getSpiritById } from '../data/spirits';
 import { MOODS_LIST, getMoodById } from '../data/moods';
+import { getKintsugiMetaByMood } from '../data/kintsugi';
+import { KintsugiObjectGraphic } from './KintsugiObjectGraphic';
 import { MoodId } from '../types';
 import { sound } from '../utils/audio';
 import { speechService } from '../utils/speech';
@@ -22,7 +24,8 @@ export const HomeView: React.FC = () => {
     feedSpiritLove,
     todayMood,
     recordMood,
-    userNickname
+    userNickname,
+    setActiveTab
   } = useApp();
 
   const [isSpeakingHero, setIsSpeakingHero] = useState(false);
@@ -32,6 +35,11 @@ export const HomeView: React.FC = () => {
   const [rippleKey, setRippleKey] = useState(0);
   const [showMoodModal, setShowMoodModal] = useState(false);
   const [moodNote, setMoodNote] = useState('');
+  
+  // Generated cracked object model state
+  const [generatedMood, setGeneratedMood] = useState<MoodId | null>(null);
+  const [showGeneratedObject, setShowGeneratedObject] = useState(false);
+  
   const lastTapRef = React.useRef<number>(0);
 
   const currentSpiritId = userSpirit ? userSpirit.spiritId : 'fairy';
@@ -86,10 +94,26 @@ export const HomeView: React.FC = () => {
     }, 1300);
   };
 
+  // Selecting a mood generates cracked ceramic/glass object model
   const handleSelectMood = (moodId: MoodId) => {
     recordMood(moodId, moodNote.trim() || undefined);
     sound.playChime(528);
+    setGeneratedMood(moodId);
+    setShowGeneratedObject(true);
+  };
+
+  const handleGoToJournal = () => {
+    sound.playChime(640);
     setShowMoodModal(false);
+    setShowGeneratedObject(false);
+    setMoodNote('');
+    setActiveTab('journal');
+  };
+
+  const handleCloseMoodModal = () => {
+    setShowMoodModal(false);
+    setShowGeneratedObject(false);
+    setGeneratedMood(null);
     setMoodNote('');
   };
 
@@ -217,65 +241,124 @@ export const HomeView: React.FC = () => {
         )}
       </div>
 
-      {/* MOOD CHECK-IN MODAL POPUP */}
+      {/* MOOD CHECK-IN & KINTSUGI OBJECT GENERATION MODAL */}
       {showMoodModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A0D1B]/90 backdrop-blur-2xl animate-fade-in text-left">
           <div className="w-full max-w-md glass-panel rounded-3xl p-6 border border-white/15 shadow-2xl space-y-5">
             <div className="flex items-center justify-between pb-2 border-b border-white/10">
               <div>
                 <span className="text-[10px] text-[#A8D2C4] font-bold uppercase tracking-wider block">
-                  Lắng nghe bản thân
+                  {showGeneratedObject ? 'Vật Phẩm Tâm Hồn Kintsugi' : 'Lắng nghe bản thân'}
                 </span>
                 <h3 className="text-base sm:text-lg font-bold text-[#FFFFFF] font-display">
-                  Hôm nay bạn cảm thấy thế nào?
+                  {showGeneratedObject ? 'Đã sinh ra vật phẩm nứt vỡ' : 'Hôm nay bạn cảm thấy thế nào?'}
                 </h3>
               </div>
               <button
                 type="button"
-                onClick={() => setShowMoodModal(false)}
+                onClick={handleCloseMoodModal}
                 className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-[#B9B5C8] hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* 8 Emotional State Grid */}
-            <div className="grid grid-cols-4 gap-2.5">
-              {MOODS_LIST.map(m => {
-                const isSelected = todayMood === m.id;
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => handleSelectMood(m.id)}
-                    className={`min-h-[70px] p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center active:scale-95 ${
-                      isSelected
-                        ? 'bg-[#242347] border-[#B9A9E8] ring-2 ring-[#B9A9E8]/60 shadow-lg scale-105'
-                        : 'bg-[#11152A] border-white/10 text-[#E2E8F0] hover:border-white/25 hover:bg-[#171A35]'
-                    }`}
-                  >
-                    <span className="text-2xl">{m.icon}</span>
-                    <span className="text-[10px] font-bold text-[#FFFFFF] mt-1 truncate max-w-full">
-                      {m.labelVi}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+            {/* IF GENERATED OBJECT: SHOW CRACKED MODEL */}
+            {showGeneratedObject && generatedMood ? (() => {
+              const kintMeta = getKintsugiMetaByMood(generatedMood);
+              const moodMeta = getMoodById(generatedMood);
 
-            {/* Optional Note */}
-            <div className="space-y-1.5 pt-1">
-              <label className="text-xs font-bold text-[#F5F2FA] uppercase tracking-wider block">
-                Ghi chú ngắn (Tùy chọn):
-              </label>
-              <input
-                type="text"
-                value={moodNote}
-                onChange={e => setMoodNote(e.target.value)}
-                placeholder="VD: Vừa hoàn thành một buổi học, thấy nhẹ nhõm..."
-                className="w-full px-4 py-2.5 rounded-xl bg-[#11152A] border border-white/15 text-xs text-[#F5F2FA] placeholder-[#858198] focus:outline-none focus:border-[#B9A9E8]"
-              />
-            </div>
+              return (
+                <div className="space-y-4 py-1 text-center animate-fade-in">
+                  <div className="relative py-4 flex flex-col items-center justify-center">
+                    <div className="p-4 rounded-3xl bg-[#0D1129]/80 border border-white/10 shadow-2xl">
+                      <KintsugiObjectGraphic
+                        objectType={kintMeta.objectType}
+                        repairProgress={0}
+                        size="hero"
+                        showGlow={true}
+                      />
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-[11px] font-bold text-amber-300">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                      <span>{kintMeta.categoryLabelVi} · Vết nứt nguyên bản</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 px-2">
+                    <h4 className="text-base font-extrabold text-white flex items-center justify-center gap-2">
+                      <span>{moodMeta.icon}</span>
+                      <span>{kintMeta.nameVi}</span>
+                    </h4>
+                    <p className="text-xs text-[#CBD5E1] leading-relaxed">
+                      {kintMeta.descriptionVi}
+                    </p>
+                    <p className="text-[11px] text-amber-200/90 italic pt-1">
+                      “Khi bạn viết hoặc thu âm tâm sự ở tab Nhật Ký, những đường chỉ vàng Kintsugi sẽ lập tức hàn gắn chiếc bình này.”
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
+                    <button
+                      type="button"
+                      onClick={handleGoToJournal}
+                      className="w-full sm:flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-200 text-[#0D0F1D] font-extrabold text-xs shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Sparkles className="w-4 h-4 fill-current" />
+                      <span>Hàn gắn bằng Nhật Ký →</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCloseMoodModal}
+                      className="w-full sm:w-auto py-3 px-4 rounded-2xl bg-white/10 hover:bg-white/15 text-[#E2E8F0] font-bold text-xs transition-colors"
+                    >
+                      Lưu vào tâm hồn
+                    </button>
+                  </div>
+                </div>
+              );
+            })() : (
+              /* DEFAULT: 8 MOOD SELECTION GRID */
+              <>
+                <div className="grid grid-cols-4 gap-2.5">
+                  {MOODS_LIST.map(m => {
+                    const isSelected = todayMood === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => handleSelectMood(m.id)}
+                        className={`min-h-[70px] p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center active:scale-95 ${
+                          isSelected
+                            ? 'bg-[#242347] border-[#B9A9E8] ring-2 ring-[#B9A9E8]/60 shadow-lg scale-105'
+                            : 'bg-[#11152A] border-white/10 text-[#E2E8F0] hover:border-white/25 hover:bg-[#171A35]'
+                        }`}
+                      >
+                        <span className="text-2xl">{m.icon}</span>
+                        <span className="text-[10px] font-bold text-[#FFFFFF] mt-1 truncate max-w-full">
+                          {m.labelVi}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Optional Note */}
+                <div className="space-y-1.5 pt-1">
+                  <label className="text-xs font-bold text-[#F5F2FA] uppercase tracking-wider block">
+                    Ghi chú ngắn (Tùy chọn):
+                  </label>
+                  <input
+                    type="text"
+                    value={moodNote}
+                    onChange={e => setMoodNote(e.target.value)}
+                    placeholder="VD: Vừa hoàn thành một buổi học, thấy nhẹ nhõm..."
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#11152A] border border-white/15 text-xs text-[#F5F2FA] placeholder-[#858198] focus:outline-none focus:border-[#B9A9E8]"
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

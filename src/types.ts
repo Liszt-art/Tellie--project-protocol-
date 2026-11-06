@@ -163,6 +163,30 @@ export interface BurnedPaper {
   keptPrivate: boolean;
 }
 
+export type KintsugiObjectType =
+  | 'glass_jar'       // Lo âu -> Lọ thủy tinh nứt vỡ
+  | 'tea_cup'         // Mệt mỏi -> Tách trà gốm nứt
+  | 'star_crystal'    // Lạc lối -> Tinh thể sao pha lê vỡ
+  | 'ceramic_vase'    // Nặng lòng -> Bình gốm đất nung nứt
+  | 'porcelain_bowl'  // Thanh thản -> Bát sứ ngọc sen
+  | 'sun_plate'       // Hy vọng -> Đĩa gốm ánh dương
+  | 'heart_gem'       // Biết ơn -> Khối ngọc trái tim
+  | 'ceramic_bell';   // Dịu êm -> Chuông gió gốm
+
+export interface KintsugiItem {
+  id: string;
+  objectType: KintsugiObjectType;
+  objectNameVi: string;
+  customName: string;
+  moodId: MoodId;
+  moodLabelVi: string;
+  timestamp: string; // ISO string
+  dateFormatted: string; // e.g. "03/11 21:30"
+  originalText: string;
+  repairProgress: number; // 0 to 100 (100 = healed with gold seams)
+  category?: string;
+}
+
 export type ActiveTab = 
   | 'home' 
   | 'journal' 

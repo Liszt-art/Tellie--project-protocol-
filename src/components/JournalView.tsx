@@ -16,19 +16,21 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { MOODS_LIST, getMoodById } from '../data/moods';
+import { getKintsugiMetaByMood } from '../data/kintsugi';
+import { KintsugiObjectGraphic } from './KintsugiObjectGraphic';
 import { MoodId, Post } from '../types';
 import { sound } from '../utils/audio';
 import { createSpeechRecognizer } from '../utils/speech';
 import { SpiritAvatar } from './SpiritAvatar';
 
 interface JournalViewProps {
-  onRedirectToGarden?: () => void;
+  onOpenProfile?: () => void;
 }
 
-export const JournalView: React.FC<JournalViewProps> = ({ onRedirectToGarden }) => {
+export const JournalView: React.FC<JournalViewProps> = ({ onOpenProfile }) => {
   const {
     createPost,
-    plantMemory,
+    addKintsugiItem,
     todayMood,
     recordMood,
     posts,
@@ -49,14 +51,22 @@ export const JournalView: React.FC<JournalViewProps> = ({ onRedirectToGarden }) 
   const [customHashtags, setCustomHashtags] = useState<string>('');
   const [isPrivate, setIsPrivate] = useState<boolean>(false);
 
+  // Kintsugi Naming Prompt States
+  const [showNamingPrompt, setShowNamingPrompt] = useState(false);
+  const [customKintsugiName, setCustomKintsugiName] = useState('');
+
   // Voice-to-text
   const [isRecording, setIsRecording] = useState(false);
   const [recognizer, setRecognizer] = useState<any>(null);
   const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
 
-  // Dropping seed animation state
-  const [isDroppingSeed, setIsDroppingSeed] = useState(false);
-  const [seedStage, setSeedStage] = useState<'falling' | 'planted' | 'redirecting'>('falling');
+  // Healed item success state
+  const [savedSuccessItem, setSavedSuccessItem] = useState<{ name: string; objectType: any } | null>(null);
+
+  // Dynamic Kintsugi repair progress: 0 to 100% based on content and title length
+  const totalChars = (postTitle.trim().length * 1.5) + postContent.trim().length;
+  const repairProgress = totalChars === 0 ? 0 : Math.min(100, Math.max(15, Math.round((totalChars / 50) * 100)));
+  const isHealedWithGold = repairProgress >= 95;
 
   // Mood Night States
   const [nightBreathingStep, setNightBreathingStep] = useState<'breathing' | 'selection' | 'done'>('breathing');
@@ -133,13 +143,19 @@ export const JournalView: React.FC<JournalViewProps> = ({ onRedirectToGarden }) 
     }
   };
 
-  // Submit Viết Tâm Sự & Gieo Hạt
-  const handleSubmitPost = () => {
+  // Prompt user for Kintsugi object custom name before saving
+  const handleInitiateSubmit = () => {
+    if (!postTitle.trim() || !postContent.trim()) return;
+    sound.playChime(640);
+    setShowNamingPrompt(true);
+  };
+
+  // Submit Viết Tâm Sự & Save Healed Kintsugi Item into Museum
+  const handleConfirmSaveKintsugiAndSubmit = (defaultPlaceholder: string) => {
     if (!postTitle.trim() || !postContent.trim()) return;
 
-    sound.playChime(660);
-    setIsDroppingSeed(true);
-    setSeedStage('falling');
+    setShowNamingPrompt(false);
+    sound.playChime(784);
 
     // Parse hashtags
     const rawTags = customHashtags
@@ -150,7 +166,22 @@ export const JournalView: React.FC<JournalViewProps> = ({ onRedirectToGarden }) 
       rawTags.push(selectedEmotionTag);
     }
 
-    // 1. Create post
+    // 1. Save healed vessel into "Bảo tàng hàn gắn"
+    const kintMeta = getKintsugiMetaByMood(selectedMood);
+    const finalItemName = customKintsugiName.trim() || defaultPlaceholder;
+
+    addKintsugiItem({
+      objectType: kintMeta.objectType,
+      objectNameVi: kintMeta.nameVi,
+      customName: finalItemName,
+      moodId: selectedMood,
+      moodLabelVi: selectedEmotionTag,
+      originalText: postContent.trim(),
+      repairProgress: 100,
+      category: postCategory
+    });
+
+    // 2. Create post
     createPost({
       title: postTitle.trim(),
       content: postContent.trim(),
@@ -160,40 +191,23 @@ export const JournalView: React.FC<JournalViewProps> = ({ onRedirectToGarden }) 
       isPrivate
     });
 
-    // 2. Plant memory seed into garden
-    plantMemory({
-      title: postTitle.trim(),
-      note: postContent.trim().slice(0, 100),
-      category: postCategory,
-      plantType: 'flower',
-      flowerNameVi: `Mầm hoa ${selectedEmotionTag}`,
-      color: '#A8D2C4'
+    // 3. Trigger peaceful Kintsugi saved celebration modal
+    setSavedSuccessItem({
+      name: finalItemName,
+      objectType: kintMeta.objectType
     });
+  };
 
-    // Seed animation sequence
-    setTimeout(() => {
-      setSeedStage('planted');
-      sound.playChime(820);
-    }, 1200);
-
-    setTimeout(() => {
-      setSeedStage('redirecting');
-    }, 2200);
-
-    setTimeout(() => {
-      setIsDroppingSeed(false);
-      setMode('overview');
-      setPostTitle('');
-      setPostContent('');
-      setCustomHashtags('');
-
-      // Auto-redirect to Tellie Garden in Tab 4 (Community)
-      if (onRedirectToGarden) {
-        onRedirectToGarden();
-      } else {
-        setActiveTab('community');
-      }
-    }, 2800);
+  const handleFinishJournal = (goToMuseum = false) => {
+    setSavedSuccessItem(null);
+    setMode('overview');
+    setPostTitle('');
+    setPostContent('');
+    setCustomHashtags('');
+    setCustomKintsugiName('');
+    if (goToMuseum && onOpenProfile) {
+      onOpenProfile();
+    }
   };
 
   // Start Mood Night Ritual
@@ -253,8 +267,8 @@ export const JournalView: React.FC<JournalViewProps> = ({ onRedirectToGarden }) 
           </button>
 
           <div className="flex items-center gap-1.5 text-xs text-[#A8D2C4] font-medium bg-[#A8D2C4]/15 px-3 py-1 rounded-full border border-[#A8D2C4]/25">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Gieo hạt tâm sự</span>
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span className="text-amber-200">Hàn gắn Kintsugi</span>
           </div>
         </div>
 
@@ -262,10 +276,10 @@ export const JournalView: React.FC<JournalViewProps> = ({ onRedirectToGarden }) 
           {/* Header Title */}
           <div>
             <h2 className="text-xl sm:text-2xl font-extrabold text-[#F5F2FA] font-display">
-              Viết Tâm Sự & Gieo Hạt
+              Viết Tâm Sự (Trút Bầu Tâm Sự)
             </h2>
             <p className="text-xs sm:text-sm text-[#E2E8F0] mt-1 leading-relaxed">
-              Những điều bạn viết hôm nay sẽ trở thành một mầm hoa được nuôi dưỡng trong Khu vườn Tellie.
+              Mỗi con chữ bạn trút ra sẽ hóa thành những đường chỉ vàng Kintsugi gắn liền vết nứt và lưu vào Bảo tàng hàn gắn.
             </p>
           </div>
 
@@ -282,6 +296,54 @@ export const JournalView: React.FC<JournalViewProps> = ({ onRedirectToGarden }) 
               className="w-full px-4 py-3 rounded-2xl bg-[#11152A] border border-white/15 text-sm text-[#F5F2FA] placeholder-[#858198] focus:outline-none focus:border-[#B9A9E8] transition-colors"
             />
           </div>
+
+          {/* KINTSUGI REPAIR MECHANISM CARD - DYNAMIC GOLD SEAM PROGRESS */}
+          {(() => {
+            const kintMeta = getKintsugiMetaByMood(selectedMood);
+            return (
+              <div className="p-4 rounded-3xl bg-gradient-to-r from-[#141836] via-[#1F1E3D] to-[#12152F] border border-amber-400/35 shadow-xl flex flex-col sm:flex-row items-center gap-4">
+                <div className="shrink-0 flex items-center justify-center p-2 rounded-2xl bg-[#090C1A]/85 border border-amber-400/25 shadow-inner">
+                  <KintsugiObjectGraphic
+                    objectType={kintMeta.objectType}
+                    repairProgress={repairProgress}
+                    size="md"
+                    showGlow={true}
+                  />
+                </div>
+
+                <div className="flex-1 text-center sm:text-left space-y-1.5 w-full">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-400/30 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-amber-300" />
+                        <span>Kintsugi Hàn Gắn</span>
+                      </span>
+                      <span className="text-xs font-bold text-white truncate max-w-[140px] sm:max-w-none">
+                        {kintMeta.nameVi}
+                      </span>
+                    </div>
+                    <span className="text-xs font-extrabold text-amber-300">
+                      {repairProgress}% Chỉ vàng
+                    </span>
+                  </div>
+
+                  {/* Dynamic Golden Progress Bar */}
+                  <div className="w-full h-2.5 rounded-full bg-black/50 overflow-hidden p-0.5 border border-amber-400/25">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-amber-500 via-amber-300 to-yellow-200 transition-all duration-300 shadow-[0_0_12px_#F59E0B]"
+                      style={{ width: `${repairProgress}%` }}
+                    />
+                  </div>
+
+                  <p className="text-[11px] text-[#CBD5E1] leading-relaxed">
+                    {repairProgress === 0 && 'Hãy viết hoặc thu âm những tâm tư để chỉ vàng Kintsugi bắt đầu lấp đầy vết nứt...'}
+                    {repairProgress > 0 && repairProgress < 95 && 'Những vết rạn đang dần được lấp kín bằng những dải vàng lấp lánh...'}
+                    {repairProgress >= 95 && '✨ Vết nứt đã được lấp đầy trọn vẹn bằng chỉ vàng Kintsugi quý giá!'}
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Large Expanding Textarea + Prominent Voice-to-Text Button */}
           <div className="space-y-2">
@@ -442,57 +504,148 @@ export const JournalView: React.FC<JournalViewProps> = ({ onRedirectToGarden }) 
             </div>
           </div>
 
-          {/* Primary Submit Button: Gửi & Gieo mầm */}
+          {/* Primary Submit Button: Gửi & Gieo mầm (Opens Kintsugi Naming Prompt) */}
           <div className="pt-4">
             <button
               type="button"
               disabled={!postTitle.trim() || !postContent.trim()}
-              onClick={handleSubmitPost}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#B9A9E8] via-[#A8D2C4] to-[#91B8E8] text-[#0D0F1D] font-extrabold text-sm tracking-wide shadow-xl shadow-[#B9A9E8]/20 hover:opacity-95 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              onClick={handleInitiateSubmit}
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-[#A8D2C4] text-[#0D0F1D] font-extrabold text-sm tracking-wide shadow-xl shadow-amber-400/20 hover:brightness-105 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <Send className="w-4 h-4 stroke-[2.5]" />
-              <span>Gửi & Gieo mầm hạt giống vào Vườn Tellie 🌱</span>
+              <span>Gửi & Lưu kỷ vật Kintsugi vào Bảo tàng ✨</span>
             </button>
           </div>
         </div>
 
-        {/* DROPPING SEED ANIMATION MODAL OVERLAY */}
-        {isDroppingSeed && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A0D1B]/95 backdrop-blur-2xl animate-fade-in text-center">
-            <div className="relative w-full max-w-sm glass-panel rounded-3xl p-8 border border-[#A8D2C4]/30 shadow-2xl space-y-6">
-              {/* Seed Falling Visual */}
-              <div className="relative w-44 h-44 mx-auto flex items-center justify-center">
-                {/* Soft ground aura */}
-                <div className="absolute bottom-4 w-32 h-10 rounded-full bg-[#A8D2C4]/20 blur-xl pointer-events-none" />
+        {/* KINTSUGI NAMING PROMPT MODAL */}
+        {showNamingPrompt && (() => {
+          const kintMeta = getKintsugiMetaByMood(selectedMood);
+          const now = new Date();
+          const pad = (n: number) => n.toString().padStart(2, '0');
+          // Format: [Object Name] • [DD/MM HH:mm] (e.g., "Khối pha lê Lạc lối • 03/11 01:00")
+          const defaultPlaceholder = `${kintMeta.nameVi} • ${pad(now.getDate())}/${pad(now.getMonth() + 1)} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
-                {/* Animated Falling Seed */}
-                <div
-                  className={`w-14 h-14 rounded-full bg-gradient-to-br from-[#FFFEE8] via-[#A8D2C4] to-[#719B8E] shadow-[0_0_35px_rgba(168,210,196,0.9)] flex items-center justify-center text-xl transition-all duration-1000 ${
-                    seedStage === 'falling'
-                      ? '-translate-y-16 scale-90 opacity-90'
-                      : 'translate-y-6 scale-110 opacity-100 ring-4 ring-[#A8D2C4]/50'
-                  }`}
-                >
-                  🌱
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A0D1B]/90 backdrop-blur-2xl animate-fade-in text-left">
+              <div className="w-full max-w-md glass-panel rounded-3xl p-6 border border-amber-400/40 shadow-2xl space-y-5">
+                <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                  <div>
+                    <span className="text-[10px] text-amber-300 font-bold uppercase tracking-wider block">
+                      Bảo tàng hàn gắn Tellie
+                    </span>
+                    <h3 className="text-base sm:text-lg font-bold text-[#FFFFFF] font-display">
+                      Đặt tên cho kỷ vật đã được hàn gắn ✨
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowNamingPrompt(false)}
+                    className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-[#B9B5C8] hover:text-white"
+                  >
+                    ✕
+                  </button>
                 </div>
 
-                {/* Sparkling Embers */}
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="text-[#FFFEE8] text-sm animate-ping absolute top-4 left-6">✧</div>
-                  <div className="text-[#A8D2C4] text-xs animate-pulse absolute top-10 right-8">✦</div>
-                  <div className="text-[#B9A9E8] text-sm animate-ping absolute bottom-8 left-10">⋆</div>
+                {/* Healed Object Visual Preview with 100% gold seams */}
+                <div className="py-2 flex flex-col items-center justify-center text-center">
+                  <div className="p-3 rounded-2xl bg-[#0B0E23]/90 border border-amber-400/30 shadow-xl">
+                    <KintsugiObjectGraphic
+                      objectType={kintMeta.objectType}
+                      repairProgress={100}
+                      size="lg"
+                      showGlow={true}
+                    />
+                  </div>
+                  <span className="mt-2 text-xs font-bold text-amber-200">
+                    {kintMeta.nameVi} · Đã gắn liền bằng chỉ vàng
+                  </span>
+                </div>
+
+                {/* Name Fields */}
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-[#F5F2FA] uppercase tracking-wider block">
+                      Tên kỷ vật (Mặc định hoặc tùy chỉnh):
+                    </label>
+                    <input
+                      type="text"
+                      value={customKintsugiName}
+                      onChange={e => setCustomKintsugiName(e.target.value)}
+                      placeholder={defaultPlaceholder}
+                      className="w-full px-4 py-3 rounded-xl bg-[#11152A] border border-amber-400/30 text-sm font-semibold text-[#FFFFFF] placeholder-[#858198] focus:outline-none focus:border-amber-400"
+                    />
+                    <p className="text-[11px] text-[#A8D2C4]">
+                      Tên mặc định gợi ý: <strong>{defaultPlaceholder}</strong>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowNamingPrompt(false)}
+                    className="flex-1 min-h-[44px] py-3 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-[#E2E8F0]"
+                  >
+                    Chỉnh sửa thêm
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleConfirmSaveKintsugiAndSubmit(defaultPlaceholder)}
+                    className="flex-1 min-h-[44px] py-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-200 text-[#0D0F1D] font-extrabold text-xs shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <Sparkles className="w-4 h-4 fill-current" />
+                    <span>Lưu vào Bảo tàng</span>
+                  </button>
                 </div>
               </div>
+            </div>
+          );
+        })()}
 
-              <div className="space-y-2">
-                <h3 className="text-lg font-bold text-[#F5F2FA] font-display">
-                  {seedStage === 'falling' && 'Đang gieo mầm tâm tư...'}
-                  {seedStage === 'planted' && 'Hạt giống đã bén rễ vào đất ấm! ✨'}
-                  {seedStage === 'redirecting' && 'Đang đưa bạn đến Khu Vườn Tellie...'}
+        {/* KINTSUGI HEALED CELEBRATION MODAL (NO SEED / NO GARDEN) */}
+        {savedSuccessItem && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A0D1B]/95 backdrop-blur-2xl animate-fade-in text-center">
+            <div className="relative w-full max-w-sm glass-panel rounded-3xl p-7 border border-amber-400/40 shadow-2xl space-y-5">
+              <div className="py-2 flex flex-col items-center justify-center">
+                <div className="p-4 rounded-3xl bg-[#090C1A] border border-amber-400/40 shadow-2xl animate-pulse">
+                  <KintsugiObjectGraphic
+                    objectType={savedSuccessItem.objectType}
+                    repairProgress={100}
+                    size="lg"
+                    showGlow={true}
+                  />
+                </div>
+                <span className="mt-3 text-xs font-bold text-amber-300 bg-amber-500/15 px-3 py-1 rounded-full border border-amber-400/30">
+                  ✨ Đã gắn liền bằng chỉ vàng Kintsugi
+                </span>
+              </div>
+
+              <div className="space-y-1.5">
+                <h3 className="text-lg font-extrabold text-[#F5F2FA] font-display">
+                  Lưu trữ thành công!
                 </h3>
-                <p className="text-xs text-[#E2E8F0] leading-relaxed max-w-xs mx-auto">
-                  Tâm sự của bạn được nâng niu an toàn. Một mầm cây mới vừa được đơm chồi trong khu vườn cảm xúc.
+                <p className="text-xs text-[#E2E8F0] leading-relaxed">
+                  Kỷ vật <strong>&ldquo;{savedSuccessItem.name}&rdquo;</strong> đã được lưu giữ trang trọng trong <strong>Bảo tàng hàn gắn</strong> của bạn.
                 </p>
+              </div>
+
+              <div className="flex flex-col gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => handleFinishJournal(true)}
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-300 text-[#0D0F1D] font-extrabold text-xs shadow-lg hover:brightness-105 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Sparkles className="w-4 h-4 fill-current" />
+                  <span>Xem Bảo tàng hàn gắn</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleFinishJournal(false)}
+                  className="w-full py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-[#CBD5E1]"
+                >
+                  Quay về Nhật Ký
+                </button>
               </div>
             </div>
           </div>
@@ -639,20 +792,20 @@ export const JournalView: React.FC<JournalViewProps> = ({ onRedirectToGarden }) 
 
         <div className="relative z-10 space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold text-[#A8D2C4] tracking-wider uppercase">
-            <span>📖 Nhật Ký Cảm Xúc & Gieo Mầm</span>
+            <span>📖 Nhật Ký Cảm Xúc & Hàn Gắn Kintsugi</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#F5F2FA] font-display tracking-tight">
-            Nơi Tâm Tư Hóa Thành Hạt Mầm
+            Nơi Tâm Tư Được Chữa Lành Bằng Chỉ Vàng
           </h2>
           <p className="text-xs sm:text-sm text-[#E2E8F0] max-w-md leading-relaxed">
-            Viết ra những trăn trở hoặc tham gia nghi thức đêm để vỗ về tâm hồn sau một ngày dài học tập.
+            Trút bầu tâm sự để hàn gắn những rạn vỡ cảm xúc bằng triết lý Kintsugi, hoặc tham gia nghi thức đêm để vỗ về bản thân sau một ngày dài.
           </p>
         </div>
       </div>
 
       {/* TWO PRIMARY ACTION CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* CARD 1: VIẾT TÂM SỰ (Gieo mầm hạt giống) */}
+        {/* CARD 1: VIẾT TÂM SỰ (Trút bầu tâm sự) */}
         <div className="glass-panel rounded-3xl p-5 border border-white/15 shadow-xl hover:border-[#B9A9E8]/50 transition-all flex flex-col justify-between space-y-4">
           <div className="space-y-2">
             <div className="w-12 h-12 rounded-2xl bg-[#B9A9E8]/20 border border-[#B9A9E8]/30 flex items-center justify-center text-[#B9A9E8] shadow-inner">
@@ -660,10 +813,10 @@ export const JournalView: React.FC<JournalViewProps> = ({ onRedirectToGarden }) 
             </div>
             <div>
               <h3 className="text-base font-bold text-[#F5F2FA] font-display">
-                Viết Tâm Sự (Gieo Hạt)
+                Viết Tâm Sự (Trút Bầu Tâm Sự)
               </h3>
               <p className="text-xs text-[#E2E8F0] mt-1 leading-relaxed">
-                Viết hoặc thu âm giọng nói. Mỗi bài viết sẽ được gieo thành một hạt giống hoa trong Khu Vườn Tellie.
+                Viết hoặc thu âm giọng nói. Mỗi câu từ trút ra sẽ là những đường chỉ vàng Kintsugi gắn liền vết nứt và lưu giữ trong Bảo tàng.
               </p>
             </div>
           </div>
@@ -713,7 +866,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ onRedirectToGarden }) 
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-[#F5F2FA] uppercase tracking-wider flex items-center gap-2">
             <Calendar className="w-4 h-4 text-[#A8D2C4]" />
-            <span>Những mầm tâm sự gần đây của bạn</span>
+            <span>Những dòng tâm sự gần đây của bạn</span>
           </h3>
           <span className="text-xs text-[#B9B5C8] font-medium">
             {myPosts.length} dòng nhật ký
@@ -723,10 +876,10 @@ export const JournalView: React.FC<JournalViewProps> = ({ onRedirectToGarden }) 
         {myPosts.length === 0 ? (
           <div className="glass-panel rounded-3xl p-8 border border-white/10 text-center space-y-3">
             <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto text-[#B9B5C8]">
-              🌱
+              ✨
             </div>
             <p className="text-xs text-[#E2E8F0] max-w-xs mx-auto">
-              Bạn chưa có dòng tâm sự nào được gieo. Hãy bấm "Mở trang viết tâm sự" ở trên để giải tỏa suy nghĩ nhé.
+              Bạn chưa có dòng tâm sự nào. Hãy bấm "Mở trang viết tâm sự" ở trên để giải tỏa suy nghĩ và hàn gắn tâm hồn nhé.
             </p>
           </div>
         ) : (
